@@ -1,0 +1,33 @@
+{
+  "name": "aicustomer-admin",
+  "version": "7.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "build:staging": "turbo run build:staging",
+    "preview": "turbo run preview",
+    "preview:build": "turbo run preview:build",
+    "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint",
+    "lint:eslint": "turbo run lint:eslint",
+    "lint:prettier": "turbo run lint:prettier",
+    "lint:stylelint": "turbo run lint:stylelint",
+    "clean": "turbo run clean",
+    "clean:cache": "rimraf pnpm-lock.yaml && rimraf node_modules && pnpm store prune && pnpm install",
+    "format": "prettier --write \"**/*.{js,ts,json,tsx,css,scss,vue,html,md}\"",
+    "preinstall": "npx only-allow pnpm"
+  },
+  "engines": {
+    "node": ">=22.22.1",
+    "pnpm": ">=11"
+  },
+  "license": "MIT",
+  "description": "AI Customer Service Admin Dashboard - Monorepo",
+  "devDependencies": {
+    "turbo": "^2.5.0",
+    "only-allow": "^1.2.1"
+  },
+  "packageManager": "pnpm@11.0.0"
+}
