@@ -17,7 +17,7 @@
     "allowJs": false,
     "resolveJsonModule": true,
     "lib": ["ESNext", "DOM"],
-    "composite": true,
+    "declaration": false,
     "paths": {
       "@/*": ["./src/*"],
       "@build/*": ["./build/*"]

@@ -16,11 +16,13 @@ interface FormItemProps {
   activePath: string;
   auths: string;
   frameSrc: string;
+  frameLoading: boolean;
   keepAlive: boolean;
   hiddenTag: boolean;
   fixedTag: boolean;
   showLink: boolean;
   showParent: boolean;
+  id?: number;
 }
 interface FormProps {
   formInline: FormItemProps;
