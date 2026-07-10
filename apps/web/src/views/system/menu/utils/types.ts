@@ -1,5 +1,5 @@
 interface FormItemProps {
-  /** 菜单类型（0代表菜单、1代表iframe、2代表外链、3代表按钮）*/
+  /** 菜单类型（0代表菜单、1代表按钮）*/
   menuType: number;
   higherMenuOptions: Record<string, unknown>[];
   parentId: number;
@@ -15,8 +15,6 @@ interface FormItemProps {
   leaveTransition: string;
   activePath: string;
   auths: string;
-  frameSrc: string;
-  frameLoading: boolean;
   keepAlive: boolean;
   hiddenTag: boolean;
   fixedTag: boolean;

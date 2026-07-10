@@ -33,8 +33,6 @@ const props = withDefaults(defineProps<FormProps>(), {
     leaveTransition: "",
     activePath: "",
     auths: "",
-    frameSrc: "",
-    frameLoading: true,
     keepAlive: false,
     hiddenTag: false,
     fixedTag: false,

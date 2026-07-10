@@ -188,7 +188,6 @@ function buildRouterTree(pages: typeof sysPages.$inferSelect[]) {
             hiddenTag: c.hiddenTag === 1,
             fixedTag: c.fixedTag === 1,
             auths: c.auths ? c.auths.split(',').filter(Boolean) : undefined,
-            frameSrc: c.frameSrc || undefined,
           },
         })),
     }));

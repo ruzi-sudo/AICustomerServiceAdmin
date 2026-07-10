@@ -58,13 +58,13 @@ CREATE TABLE IF NOT EXISTS sys_user_roles (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT '用户角色关联表';
 
 -- ----------------------------
--- 5. 页面/菜单表 (支持四级类型)
+-- 5. 页面/菜单表 (支持菜单和按钮两种类型)
 --    menu_type: 0=菜单 1=按钮
 -- ----------------------------
 CREATE TABLE IF NOT EXISTS sys_pages (
     id                INT PRIMARY KEY AUTO_INCREMENT COMMENT '页面ID',
     parent_id         INT DEFAULT 0 COMMENT '父级ID',
-    menu_type         TINYINT DEFAULT 0 COMMENT '类型(0菜单 1iframe 2外链 1按钮)',
+    menu_type         TINYINT DEFAULT 0 COMMENT '类型(0菜单 1按钮)',
     title             VARCHAR(128) NOT NULL COMMENT '菜单标题/i18n键',
     name              VARCHAR(128) COMMENT '路由名称',
     path              VARCHAR(255) COMMENT '路由路径',
@@ -77,8 +77,6 @@ CREATE TABLE IF NOT EXISTS sys_pages (
     leave_transition  VARCHAR(64)  COMMENT '离场动画',
     active_path       VARCHAR(255) COMMENT '激活菜单路径',
     auths             VARCHAR(255) COMMENT '按钮权限标识',
-    frame_src         VARCHAR(512) COMMENT 'iframe链接地址',
-    frame_loading     TINYINT DEFAULT 1 COMMENT 'iframe加载动画(1开启 0关闭)',
     keep_alive        TINYINT DEFAULT 0 COMMENT '缓存页面(1是 0否)',
     hidden_tag        TINYINT DEFAULT 0 COMMENT '禁止标签页(1禁止 0允许)',
     fixed_tag         TINYINT DEFAULT 0 COMMENT '固定标签页(1固定 0不固定)',

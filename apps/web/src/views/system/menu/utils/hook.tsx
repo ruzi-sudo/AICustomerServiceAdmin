@@ -23,10 +23,6 @@ export function useMenu() {
       case 0:
         return text ? "菜单" : "primary";
       case 1:
-        return text ? "iframe" : "warning";
-      case 2:
-        return text ? "外链" : "danger";
-      case 3:
         return text ? "按钮" : "info";
     }
   };
@@ -155,8 +151,6 @@ export function useMenu() {
           leaveTransition: row?.leaveTransition ?? "",
           activePath: row?.activePath ?? "",
           auths: row?.auths ?? "",
-          frameSrc: row?.frameSrc ?? "",
-          frameLoading: row?.frameLoading ?? true,
           keepAlive: row?.keepAlive ?? false,
           hiddenTag: row?.hiddenTag ?? false,
           fixedTag: row?.fixedTag ?? false,

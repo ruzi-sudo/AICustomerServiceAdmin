@@ -16,8 +16,6 @@ export const sysPages = mysqlTable('sys_pages', {
   leaveTransition: varchar('leave_transition', { length: 64 }),
   activePath: varchar('active_path', { length: 255 }),
   auths: varchar('auths', { length: 255 }),
-  frameSrc: varchar('frame_src', { length: 512 }),
-  frameLoading: tinyint('frame_loading').default(1),
   keepAlive: tinyint('keep_alive').default(0),
   hiddenTag: tinyint('hidden_tag').default(0),
   fixedTag: tinyint('fixed_tag').default(0),
