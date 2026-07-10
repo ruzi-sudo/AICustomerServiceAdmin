@@ -43,6 +43,16 @@ export function useDataThemeChange() {
     targetEl.className = flag ? `${className} ${clsName}` : className;
   }
 
+  function getEpThemeColor(theme?: string) {
+    if (!theme || theme === "default" || theme === "light") {
+      return getConfig().EpThemeColor;
+    }
+    return (
+      themeColors.value.find((v) => v.themeColor === theme)?.color ??
+      getConfig().EpThemeColor
+    );
+  }
+
   /** 设置导航主题色 */
   function setLayoutThemeColor(
     theme = getConfig().Theme ?? "light",
@@ -62,12 +72,7 @@ export function useDataThemeChange() {
       themeMode: themeMode.value,
     };
 
-    if (theme === "default" || theme === "light") {
-      setEpThemeColor(getConfig().EpThemeColor);
-    } else {
-      const colors = themeColors.value.find((v) => v.themeColor === theme);
-      setEpThemeColor(colors.color);
-    }
+    setEpThemeColor(getEpThemeColor(isClick ? theme : storageThemeColor));
   }
 
   function setPropertyPrimary(mode: string, i: number, color: string) {
@@ -91,22 +96,22 @@ export function useDataThemeChange() {
   };
 
   /** 浅色、深色主题模式切换 */
-  function dataThemeChange(mode?: string) {
-    themeMode.value = mode;
-    if (useEpThemeStoreHook().epTheme === "light" && dataTheme.value) {
-      setLayoutThemeColor("default", false);
-    } else {
-      setLayoutThemeColor(useEpThemeStoreHook().epTheme, false);
-    }
+  function dataThemeChange(mode?: string | boolean) {
+    themeMode.value =
+      typeof mode === "string" ? mode : dataTheme.value ? "dark" : "light";
+
+    const selectedTheme =
+      $storage.layout?.themeColor ?? getConfig().Theme ?? "light";
+    const currentTheme =
+      selectedTheme === "light" && dataTheme.value ? "default" : selectedTheme;
 
     if (dataTheme.value) {
       document.documentElement.classList.add("dark");
     } else {
-      if ($storage.layout.themeColor === "light") {
-        setLayoutThemeColor("light", false);
-      }
       document.documentElement.classList.remove("dark");
     }
+
+    setLayoutThemeColor(currentTheme, false);
   }
 
   /** 清空缓存并返回登录页 */
