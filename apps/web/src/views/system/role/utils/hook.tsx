@@ -5,7 +5,7 @@ import { message } from "@/utils/message";
 import { ElMessageBox } from "element-plus";
 import { usePublicHooks } from "../../hooks";
 import { transformI18n } from "@/plugins/i18n";
-import { addDialog } from "@/components/ReDialog";
+import { addDialog, closeAllDialog } from "@/components/ReDialog";
 import type { FormItemProps } from "../utils/types";
 import type { PaginationProps } from "@pureadmin/table";
 import { getKeyList, deviceDetection } from "@pureadmin/utils";
@@ -167,6 +167,7 @@ export function useRole(treeRef: Ref) {
   };
 
   function openDialog(title = "新增", row?: FormItemProps) {
+    closeAllDialog();
     addDialog({
       title: `${title}角色`,
       props: {
