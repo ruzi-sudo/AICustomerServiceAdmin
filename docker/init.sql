@@ -199,26 +199,26 @@ INSERT INTO sys_user_roles (user_id, role_id) VALUES
 -- sys_pages (菜单结构)
 -- id/排序参考 mock 数据
 -- ----------------------------
-INSERT INTO sys_pages (id, parent_id, menu_type, title, name, path, component, `rank`, icon, auths) VALUES
+INSERT INTO sys_pages (id, parent_id, menu_type, title, name, path, component, `rank`, icon, auths, status) VALUES
 -- 首页 (home)
-(1,  0, 0, 'menus.pureHome',      'Home',    '/',          'layout/index.vue',          0,  'ep/home-filled', NULL),
-(2,  1, 0, 'menus.pureHome',      'Welcome', '/welcome',   'views/welcome/index.vue',   0,  NULL, NULL),
+(1,  0, 0, 'menus.pureHome',      'Home',    '/',          'layout/index.vue',          0,  'ep/home-filled', NULL, 1),
+(2,  1, 0, 'menus.pureHome',      'Welcome', '/welcome',   'views/welcome/index.vue',   0,  NULL, NULL, 1),
 
 -- chat-ai
-(3,  0, 0, 'chat-ai',             'ChatAi',  '/chatai',    NULL,                        1,  'ri/chat-search-line', NULL),
-(4,  3, 0, 'chat-ai',             'ChatAi',  '/chatai/index', 'views/chatai/index.vue', 1,  NULL, NULL),
+(3,  0, 0, 'chat-ai',             'ChatAi',  '/chatai',    NULL,                        1,  'ri/chat-search-line', NULL, 1),
+(4,  3, 0, 'chat-ai',             'ChatAi',  '/chatai/index', 'views/chatai/index.vue', 1,  NULL, NULL, 1),
 
 -- 系统管理
-(5,  0, 0, 'menus.pureSysManagement', NULL,  '/system',    NULL,                        2,  'ri/settings-3-line', NULL),
-(6,  5, 0, 'menus.pureUser',      'SystemUser',  '/system/user/index',  'views/system/user/index.vue',  1,  'ri/admin-line', NULL),
-(7,  5, 0, 'menus.pureRole',      'SystemRole',  '/system/role/index',  'views/system/role/index.vue',  2,  'ri/admin-fill', NULL),
-(8,  5, 0, 'menus.pureSystemMenu','SystemMenu',  '/system/menu/index',  'views/system/menu/index.vue',  3,  'ep/menu', NULL),
+(5,  0, 0, 'menus.pureSysManagement', NULL,  '/system',    NULL,                        2,  'ri/settings-3-line', NULL, 1),
+(6,  5, 0, 'menus.pureUser',      'SystemUser',  '/system/user/index',  'views/system/user/index.vue',  1,  'ri/admin-line', NULL, 1),
+(7,  5, 0, 'menus.pureRole',      'SystemRole',  '/system/role/index',  'views/system/role/index.vue',  2,  'ri/admin-fill', NULL, 1),
+(8,  5, 0, 'menus.pureSystemMenu','SystemMenu',  '/system/menu/index',  'views/system/menu/index.vue',  3,  'ep/menu', NULL, 1),
 
 -- 系统监控
-(9,  0, 0, 'menus.pureSysMonitor', NULL,  '/monitor',      NULL,                        3,  'ep/monitor', NULL),
-(10, 9, 0, 'menus.pureOnlineUser', 'OnlineUser', '/monitor/online-user',    'views/monitor/online/index.vue',         1, 'ri/user-voice-line', NULL),
-(11, 9, 0, 'menus.pureLoginLog',   'LoginLog',   '/monitor/login-logs',    'views/monitor/logs/login/index.vue',    2, 'ri/window-line', NULL),
-(13, 9, 0, 'menus.pureSystemLog',  'SystemLog',  '/monitor/system-logs',  'views/monitor/logs/system/index.vue',   4, 'ri/file-search-line', NULL);
+(9,  0, 0, 'menus.pureSysMonitor', NULL,  '/monitor',      NULL,                        3,  'ep/monitor', NULL, 1),
+(10, 9, 0, 'menus.pureOnlineUser', 'OnlineUser', '/monitor/online-user',    'views/monitor/online/index.vue',         1, 'ri/user-voice-line', NULL, 1),
+(11, 9, 0, 'menus.pureLoginLog',   'LoginLog',   '/monitor/login-logs',    'views/monitor/logs/login/index.vue',    2, 'ri/window-line', NULL, 1),
+(13, 9, 0, 'menus.pureSystemLog',  'SystemLog',  '/monitor/system-logs',  'views/monitor/logs/system/index.vue',   4, 'ri/file-search-line', NULL, 1);
 
 -- sys_role_pages (角色页面权限)
 -- 超级管理员拥有所有页面权限
