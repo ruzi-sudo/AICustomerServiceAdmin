@@ -7,6 +7,7 @@ import { transformI18n } from "@/plugins/i18n";
 import { IconSelect } from "@/components/ReIcon";
 import Segmented from "@/components/ReSegmented";
 import ReAnimateSelector from "@/components/ReAnimateSelector";
+import { usePublicHooks } from "../hooks";
 import {
   menuTypeOptions,
   showLinkOptions,
@@ -38,11 +39,13 @@ const props = withDefaults(defineProps<FormProps>(), {
     fixedTag: false,
     showLink: true,
     showParent: false,
+    status: 1,
   }),
 });
 
 const ruleFormRef = ref();
 const newFormInline = ref(props.formInline);
+const { switchStyle } = usePublicHooks();
 
 function getRef() {
   return ruleFormRef.value;
@@ -326,6 +329,24 @@ defineExpose({ getRef });
                 newFormInline.fixedTag = value;
               }
             "
+          />
+        </el-form-item>
+      </re-col>
+      <re-col
+        v-if="newFormInline.menuType == 0"
+        :value="12"
+        :xs="24"
+        :sm="24"
+      >
+        <el-form-item label="菜单状态">
+          <el-switch
+            v-model="newFormInline.status"
+            inline-prompt
+            :active-value="1"
+            :inactive-value="0"
+            active-text="启用"
+            inactive-text="停用"
+            :style="switchStyle"
           />
         </el-form-item>
       </re-col>

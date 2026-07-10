@@ -8,6 +8,7 @@ import { reactive, ref, onMounted, h } from "vue";
 import type { FormItemProps } from "../utils/types";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import { cloneDeep, isAllEmpty, deviceDetection } from "@pureadmin/utils";
+import { usePublicHooks } from "../../hooks";
 
 export function useMenu() {
   const form = reactive({
@@ -17,6 +18,8 @@ export function useMenu() {
   const formRef = ref();
   const dataList = ref([]);
   const loading = ref(true);
+  const switchLoadMap = ref<Record<number, { loading: boolean }>>({});
+  const { switchStyle } = usePublicHooks();
 
   const getMenuType = (type, text = false) => {
     switch (type) {
@@ -81,6 +84,24 @@ export function useMenu() {
       prop: "showLink",
       formatter: ({ showLink }) => (showLink ? "否" : "是"),
       width: 100,
+    },
+    {
+      label: "状态",
+      prop: "status",
+      width: 100,
+      cellRenderer: (scope) => (
+        <el-switch
+          size={scope.props.size === "small" ? "small" : "default"}
+          loading={switchLoadMap.value[scope.index]?.loading}
+          v-model={scope.row.status}
+          active-value={1}
+          inactive-value={0}
+          active-text="启用"
+          inactive-text="停用"
+          style={switchStyle}
+          onChange={() => handleStatusChange(scope.row, scope.index)}
+        />
+      ),
     },
     {
       label: "操作",
@@ -156,6 +177,7 @@ export function useMenu() {
           fixedTag: row?.fixedTag ?? false,
           showLink: row?.showLink ?? true,
           showParent: row?.showParent ?? false,
+          status: row?.status ?? 1,
         },
       },
       width: "45%",
@@ -196,6 +218,17 @@ export function useMenu() {
     }
   }
 
+  async function handleStatusChange(row, index) {
+    switchLoadMap.value[index] = { loading: true };
+    const { code, message: msg } = await updateMenu({ id: row.id, status: row.status });
+    if (code === 0) {
+      message(row.status === 1 ? '已启用' : '已停用', { type: "success" });
+    } else {
+      message(msg || '操作失败', { type: "error" });
+    }
+    switchLoadMap.value[index] = { loading: false };
+  }
+
   onMounted(() => {
     onSearch();
   });
@@ -214,5 +247,6 @@ export function useMenu() {
     /** 删除菜单 */
     handleDelete,
     handleSelectionChange,
+    handleStatusChange,
   };
 }

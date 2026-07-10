@@ -20,6 +20,7 @@ interface FormItemProps {
   fixedTag: boolean;
   showLink: boolean;
   showParent: boolean;
+  status: number;
   id?: number;
 }
 interface FormProps {
