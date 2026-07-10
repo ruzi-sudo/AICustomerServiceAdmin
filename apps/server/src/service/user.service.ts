@@ -8,6 +8,7 @@ export async function listUsers(params: {
   username?: string;
   status?: number;
   phone?: string;
+  email?: string;
   pageNum: number;
   pageSize: number;
 }) {

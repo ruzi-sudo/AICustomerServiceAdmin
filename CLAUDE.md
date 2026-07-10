@@ -72,9 +72,8 @@ AICustomerServiceAdmin/
 │   └── config/         # Shared ESLint & TypeScript configs
 ├── docker-compose.yml  # MySQL 8.0 (container: pureadmin-db) — 已移至 docker/
 ├── Dockerfile.db       # MySQL image with init.sql auto-load — 已移至 docker/
-├── .mcp.json           # MySQL MCP server (read-only)
-├── init.sql            # Full schema + seed data
-└── .env.db             # MySQL env vars (MYSQL_ROOT_PASSWORD, MYSQL_DATABASE)
+├── .mcp.json           # MySQL MCP server (read-write, configured in .mcp.json)
+└── docker/             # MySQL Docker config + init.sql (schema + seed data)
 ```
 
 ### Backend: adding a new module

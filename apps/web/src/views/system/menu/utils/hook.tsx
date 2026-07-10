@@ -93,13 +93,13 @@ export function useMenu() {
         <el-switch
           size={scope.props.size === "small" ? "small" : "default"}
           loading={switchLoadMap.value[scope.index]?.loading}
-          v-model={scope.row.status}
-          active-value={1}
-          inactive-value={0}
+          modelValue={scope.row.status}
+          activeValue={1}
+          inactiveValue={0}
           active-text="启用"
           inactive-text="停用"
           style={switchStyle}
-          onChange={() => handleStatusChange(scope.row, scope.index)}
+          onClick={() => handleStatusClick(scope.row, scope.index)}
         />
       ),
     },
@@ -218,11 +218,13 @@ export function useMenu() {
     }
   }
 
-  async function handleStatusChange(row, index) {
+  async function handleStatusClick(row, index) {
+    const newStatus = row.status === 1 ? 0 : 1;
     switchLoadMap.value[index] = { loading: true };
-    const { code, message: msg } = await updateMenu({ id: row.id, status: row.status });
+    const { code, message: msg } = await updateMenu({ id: row.id, status: newStatus });
     if (code === 0) {
-      message(row.status === 1 ? '已启用' : '已停用', { type: "success" });
+      row.status = newStatus;
+      message(newStatus === 1 ? '已启用' : '已停用', { type: "success" });
     } else {
       message(msg || '操作失败', { type: "error" });
     }
@@ -247,6 +249,6 @@ export function useMenu() {
     /** 删除菜单 */
     handleDelete,
     handleSelectionChange,
-    handleStatusChange,
+    handleStatusClick,
   };
 }

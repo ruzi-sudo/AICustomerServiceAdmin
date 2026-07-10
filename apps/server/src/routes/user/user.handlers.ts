@@ -15,6 +15,7 @@ route.openapi(routes.listUsers, async (c) => {
     username: body.username,
     status: body.status,
     phone: body.phone,
+    email: body.email,
     pageNum: body.pageNum,
     pageSize: body.pageSize,
   });

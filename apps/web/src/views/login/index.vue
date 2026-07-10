@@ -77,7 +77,8 @@ const onLogin = async (formEl: FormInstance | undefined) => {
           // 获取后端路由
           await initRouter();
           disabled.value = true;
-          router.push(getTopMenu(true).path).then(() => {
+          const topMenu = getTopMenu(true);
+          router.push(topMenu?.path ?? "/").then(() => {
             message(t("login.pureLoginSuccess"), { type: "success" });
           });
         })

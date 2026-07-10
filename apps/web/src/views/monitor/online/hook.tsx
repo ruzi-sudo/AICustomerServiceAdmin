@@ -68,11 +68,14 @@ export function useRole() {
   ];
 
   function handleSizeChange(val: number) {
-    console.log(`${val} items per page`);
+    pagination.pageSize = val;
+    pagination.currentPage = 1;
+    onSearch();
   }
 
   function handleCurrentChange(val: number) {
-    console.log(`current page: ${val}`);
+    pagination.currentPage = val;
+    onSearch();
   }
 
   function handleSelectionChange(val) {
@@ -89,7 +92,7 @@ export function useRole() {
 
   async function onSearch() {
     loading.value = true;
-    const { code, data } = await getOnlineLogsList(toRaw(form));
+    const { code, data } = await getOnlineLogsList({ ...toRaw(form), pageNum: pagination.currentPage, pageSize: pagination.pageSize });
     if (code === 0) {
       dataList.value = data.list;
       pagination.total = data.total;

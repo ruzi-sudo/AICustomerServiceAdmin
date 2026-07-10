@@ -185,16 +185,8 @@ const stretchTypeChange = ({ option }) => {
 /** 主题色 激活选择项 */
 const getThemeColor = computed(() => {
   return (current) => {
-    if (
-      current === layoutTheme.value.theme &&
-      layoutTheme.value.theme !== "light"
-    ) {
-      return "#fff";
-    } else if (
-      current === layoutTheme.value.theme &&
-      layoutTheme.value.theme === "light"
-    ) {
-      return "#1d2b45";
+    if (current === $storage.layout.themeColor) {
+      return current === "light" ? "#1d2b45" : "#fff";
     } else {
       return "transparent";
     }
@@ -593,7 +585,7 @@ onUnmounted(() => removeMatchMedia);
     height: 21px;
     cursor: pointer;
     border-radius: 4px;
-    box-shadow: rgb(0 0 0 / 15%) 0 0 0 1px inset;
+    border: 1px solid rgb(0 0 0 / 15%);
     transition: all 0.2s ease;
 
     &:hover {
@@ -604,6 +596,12 @@ onUnmounted(() => removeMatchMedia);
     }
   }
 }
+
+html.dark .theme-color li {
+  border: 1px solid #fff !important;
+}
+
+
 
 .pure-theme {
   display: flex;
