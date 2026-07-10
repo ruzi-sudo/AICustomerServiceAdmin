@@ -1,1 +1,7 @@
 node_modules
+.turbo
+*.tsbuildinfo
+.claude
+.env
+.env.local
+*.log
