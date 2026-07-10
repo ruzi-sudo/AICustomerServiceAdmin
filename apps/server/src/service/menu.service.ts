@@ -96,7 +96,7 @@ export async function getAsyncRoutes(roles: string[]) {
       .from(sysPages)
       .where(
         and(
-          ne(sysPages.menuType, 3),
+          ne(sysPages.menuType, 1),
           eq(sysPages.status, 1),
         ),
       )
@@ -117,7 +117,7 @@ export async function getAsyncRoutes(roles: string[]) {
       .where(
         and(
           inArray(sysRolePages.roleId, roleIds),
-          ne(sysPages.menuType, 3),
+          ne(sysPages.menuType, 1),
           eq(sysPages.status, 1),
         ),
       );

@@ -7,7 +7,7 @@ const menuTypeOptions: Array<OptionsType> = [
   },
   {
     label: "按钮",
-    value: 3,
+    value: 1,
   },
 ];
 

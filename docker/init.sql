@@ -59,12 +59,12 @@ CREATE TABLE IF NOT EXISTS sys_user_roles (
 
 -- ----------------------------
 -- 5. 页面/菜单表 (支持四级类型)
---    menu_type: 0=菜单 3=按钮
+--    menu_type: 0=菜单 1=按钮
 -- ----------------------------
 CREATE TABLE IF NOT EXISTS sys_pages (
     id                INT PRIMARY KEY AUTO_INCREMENT COMMENT '页面ID',
     parent_id         INT DEFAULT 0 COMMENT '父级ID',
-    menu_type         TINYINT DEFAULT 0 COMMENT '类型(0菜单 1iframe 2外链 3按钮)',
+    menu_type         TINYINT DEFAULT 0 COMMENT '类型(0菜单 1iframe 2外链 1按钮)',
     title             VARCHAR(128) NOT NULL COMMENT '菜单标题/i18n键',
     name              VARCHAR(128) COMMENT '路由名称',
     path              VARCHAR(255) COMMENT '路由路径',
