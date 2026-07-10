@@ -14,6 +14,35 @@ export const listUsers = createRoute({
   },
 });
 
+export const createUser = createRoute({
+  method: 'post',
+  path: '/user/create',
+  tags: ['user'],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            username: z.string().min(2).max(64),
+            password: z.string().min(6).max(64),
+            nickname: z.string().min(1).max(64),
+            phone: z.string().optional(),
+            email: z.string(),
+            sex: z.coerce.number().optional(),
+            status: z.coerce.number().optional(),
+            roleIds: z.array(z.number()).optional(),
+            remark: z.string().optional(),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    '200': { description: '创建成功' },
+    '401': { description: '未授权', content: { 'application/json': { schema: ErrorResponseSchema } } },
+  },
+});
+
 export const listAllRoles = createRoute({
   method: 'get',
   path: '/list-all-role',
@@ -31,6 +60,87 @@ export const listRoleIds = createRoute({
   request: { body: { content: { 'application/json': { schema: z.object({ userId: z.number() }) } } } },
   responses: {
     '200': { description: '用户的角色ID列表' },
+    '401': { description: '未授权', content: { 'application/json': { schema: ErrorResponseSchema } } },
+  },
+});
+
+export const updateUser = createRoute({
+  method: 'post',
+  path: '/user/update',
+  tags: ['user'],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            id: z.number(),
+            username: z.string().min(2).max(64).optional(),
+            nickname: z.string().min(1).max(64).optional(),
+            phone: z.string().optional(),
+            email: z.string().optional(),
+            sex: z.coerce.number().optional(),
+            status: z.coerce.number().optional(),
+            roleIds: z.array(z.number()).optional(),
+            remark: z.string().optional(),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    '200': { description: '修改成功' },
+    '401': { description: '未授权', content: { 'application/json': { schema: ErrorResponseSchema } } },
+  },
+});
+
+export const deleteUser = createRoute({
+  method: 'post',
+  path: '/user/delete',
+  tags: ['user'],
+  request: {
+    body: {
+      content: { 'application/json': { schema: z.object({ id: z.number() }) } },
+    },
+  },
+  responses: {
+    '200': { description: '删除成功' },
+    '401': { description: '未授权', content: { 'application/json': { schema: ErrorResponseSchema } } },
+  },
+});
+
+export const batchDeleteUser = createRoute({
+  method: 'post',
+  path: '/user/batch-delete',
+  tags: ['user'],
+  request: {
+    body: {
+      content: { 'application/json': { schema: z.object({ ids: z.array(z.number()) }) } },
+    },
+  },
+  responses: {
+    '200': { description: '批量删除成功' },
+    '401': { description: '未授权', content: { 'application/json': { schema: ErrorResponseSchema } } },
+  },
+});
+
+export const resetPassword = createRoute({
+  method: 'post',
+  path: '/user/reset-password',
+  tags: ['user'],
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            id: z.number(),
+            password: z.string().min(6).max(64),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    '200': { description: '重置成功' },
     '401': { description: '未授权', content: { 'application/json': { schema: ErrorResponseSchema } } },
   },
 });

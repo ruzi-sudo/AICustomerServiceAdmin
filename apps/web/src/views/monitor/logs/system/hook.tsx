@@ -5,7 +5,7 @@ import { addDialog } from "@/components/ReDialog";
 import type { PaginationProps } from "@pureadmin/table";
 import { type Ref, reactive, ref, onMounted, toRaw } from "vue";
 import { getKeyList, useCopyToClipboard } from "@pureadmin/utils";
-import { getSystemLogsList, getSystemLogsDetail } from "@/api/system";
+import { getSystemLogsList, getSystemLogsDetail, deleteSystemLogs, clearSystemLogs } from "@/api/system";
 import Info from "~icons/ri/question-line";
 
 export function useRole(tableRef: Ref) {
@@ -50,7 +50,12 @@ export function useRole(tableRef: Ref) {
     {
       label: "ID",
       prop: "id",
-      minWidth: 90,
+      minWidth: 70,
+    },
+    {
+      label: "用户ID",
+      prop: "userId",
+      minWidth: 70,
     },
     {
       label: "所属模块",
@@ -168,24 +173,25 @@ export function useRole(tableRef: Ref) {
   }
 
   /** 批量删除 */
-  function onbatchDel() {
-    // 返回当前选中的行
+  async function onbatchDel() {
     const curSelected = tableRef.value.getTableRef().getSelectionRows();
-    // 接下来根据实际业务，通过选中行的某项数据，比如下面的id，调用接口进行批量删除
-    message(`已删除序号为 ${getKeyList(curSelected, "id")} 的数据`, {
-      type: "success",
-    });
-    tableRef.value.getTableRef().clearSelection();
-    onSearch();
+    const ids = getKeyList(curSelected, "id");
+    if (!ids.length) return message("请先选择要删除的日志", { type: "warning" });
+    const { code } = await deleteSystemLogs({ ids });
+    if (code === 0) {
+      message(`已删除 ${ids.length} 条日志`, { type: "success" });
+      tableRef.value.getTableRef().clearSelection();
+      onSearch();
+    }
   }
 
   /** 清空日志 */
-  function clearAll() {
-    // 根据实际业务，调用接口删除所有日志数据
-    message("已删除所有日志数据", {
-      type: "success",
-    });
-    onSearch();
+  async function clearAll() {
+    const { code } = await clearSystemLogs();
+    if (code === 0) {
+      message("已清空所有系统日志", { type: "success" });
+      onSearch();
+    }
   }
 
   function onDetail(row) {

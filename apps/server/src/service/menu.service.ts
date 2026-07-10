@@ -18,8 +18,6 @@ function mapPage(p: {
   leaveTransition: string | null;
   activePath: string | null;
   auths: string | null;
-  frameSrc: string | null;
-  frameLoading: number | null;
   keepAlive: number | null;
   hiddenTag: number | null;
   fixedTag: number | null;
@@ -42,8 +40,6 @@ function mapPage(p: {
     leaveTransition: p.leaveTransition || '',
     activePath: p.activePath || '',
     auths: p.auths || '',
-    frameSrc: p.frameSrc || '',
-    frameLoading: p.frameLoading === 1,
     keepAlive: p.keepAlive === 1,
     hiddenTag: p.hiddenTag === 1,
     fixedTag: p.fixedTag === 1,
@@ -145,13 +141,14 @@ function buildRouterTree(pages: typeof sysPages.$inferSelect[]) {
   const layoutId = pages.find(p => p.path === '/')?.id;
 
   // 收集根 Layout 下的子路由作为顶级路由
+  const layoutPage = pages.find(p => p.path === '/');
   const layoutChildren = layoutId
     ? filteredPages.filter(c => c.parentId === layoutId).map(p => ({
         path: p.path || '',
         name: p.name || undefined,
         component: p.component || undefined,
         meta: {
-          icon: p.icon || undefined,
+          icon: p.icon || layoutPage?.icon || undefined,
           title: p.title,
           rank: p.rank ?? undefined,
           showLink: p.showLink !== 0,
@@ -159,7 +156,6 @@ function buildRouterTree(pages: typeof sysPages.$inferSelect[]) {
           hiddenTag: p.hiddenTag === 1,
           fixedTag: p.fixedTag === 1,
           auths: p.auths ? p.auths.split(',').filter(Boolean) : undefined,
-          frameSrc: p.frameSrc || undefined,
         },
       }))
     : [];
@@ -198,4 +194,53 @@ function buildRouterTree(pages: typeof sysPages.$inferSelect[]) {
     }));
 
   return [...layoutChildren, ...otherMenus];
+}
+
+export async function createMenu(params: Record<string, any>) {
+  const db = await getDb();
+  const [result] = await db.insert(sysPages).values({
+    parentId: params.parentId ?? 0,
+    menuType: params.menuType ?? 0,
+    title: params.title,
+    name: params.name || null,
+    path: params.path || null,
+    component: params.component || null,
+    rank: params.rank ?? 99,
+    redirect: params.redirect || null,
+    icon: params.icon || null,
+    extraIcon: params.extraIcon || null,
+    enterTransition: params.enterTransition || null,
+    leaveTransition: params.leaveTransition || null,
+    activePath: params.activePath || null,
+    auths: params.auths || null,
+    keepAlive: params.keepAlive ?? 0,
+    hiddenTag: params.hiddenTag ?? 0,
+    fixedTag: params.fixedTag ?? 0,
+    showLink: params.showLink ?? 1,
+    showParent: params.showParent ?? 0,
+    status: params.status ?? 1,
+  });
+  return { id: Number(result.insertId) };
+}
+
+export async function updateMenu(params: Record<string, any>) {
+  const db = await getDb();
+  const updateData: Record<string, any> = {};
+  const fields = ['parentId', 'menuType', 'title', 'name', 'path', 'component', 'rank', 'redirect', 'icon', 'extraIcon', 'enterTransition', 'leaveTransition', 'activePath', 'auths', 'keepAlive', 'hiddenTag', 'fixedTag', 'showLink', 'showParent', 'status'];
+  for (const f of fields) {
+    if (params[f] !== undefined) updateData[f] = params[f];
+  }
+  if (Object.keys(updateData).length > 0) {
+    await db.update(sysPages).set(updateData).where(eq(sysPages.id, params.id));
+  }
+}
+
+export async function deleteMenu(id: number) {
+  const db = await getDb();
+  // 删除子菜单
+  await db.delete(sysPages).where(eq(sysPages.parentId, id));
+  // 删除角色-菜单关联
+  await db.delete(sysRolePages).where(eq(sysRolePages.pageId, id));
+  // 删除菜单本身
+  await db.delete(sysPages).where(eq(sysPages.id, id));
 }

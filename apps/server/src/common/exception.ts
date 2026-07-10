@@ -27,10 +27,3 @@ export class ParamsException extends ApiException {
     this.name = 'ParamsException';
   }
 }
-
-export class NotFoundException extends ApiException {
-  constructor(message = '资源不存在') {
-    super(10003, 404, { message });
-    this.name = 'NotFoundException';
-  }
-}

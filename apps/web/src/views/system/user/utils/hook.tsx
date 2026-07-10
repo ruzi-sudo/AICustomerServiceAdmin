@@ -16,7 +16,7 @@ import {
   hideTextAtIndex,
   deviceDetection,
 } from "@pureadmin/utils";
-import { getRoleIds, getUserList, getAllRoleList } from "@/api/system";
+import { getRoleIds, getUserList, getAllRoleList, createUser, updateUser, deleteUser, batchDeleteUser, resetPassword } from "@/api/system";
 import {
   ElForm,
   ElInput,
@@ -38,7 +38,7 @@ import {
 export function useUser(tableRef: Ref) {
   const form = reactive({
     username: "",
-    phone: "",
+    email: "",
     status: "",
   });
   const formRef = ref();
@@ -64,7 +64,7 @@ export function useUser(tableRef: Ref) {
       reserveSelection: true, // 数据刷新后保留选项
     },
     {
-      label: "用户编号",
+      label: "用户ID",
       prop: "id",
       width: 90,
     },
@@ -88,11 +88,6 @@ export function useUser(tableRef: Ref) {
       minWidth: 130,
     },
     {
-      label: "用户昵称",
-      prop: "nickname",
-      minWidth: 130,
-    },
-    {
       label: "性别",
       prop: "sex",
       minWidth: 90,
@@ -108,10 +103,30 @@ export function useUser(tableRef: Ref) {
     },
     {},
     {
-      label: "手机号码",
-      prop: "phone",
-      minWidth: 90,
-      formatter: ({ phone }) => hideTextAtIndex(phone, { start: 3, end: 6 }),
+      label: "邮箱",
+      prop: "email",
+      minWidth: 150,
+    },
+    {
+      label: "角色",
+      prop: "roles",
+      minWidth: 120,
+      cellRenderer: ({ row }) => {
+        const roles = row.roles || [];
+        if (!roles.length) return <el-tag type="info" size="small">未分配</el-tag>;
+        const visible = roles.slice(0, 2);
+        const rest = roles.slice(2);
+        return (
+          <span>
+            {visible.map(r => <el-tag class="mr-1" size="small">{r}</el-tag>)}
+            {rest.length > 0 && (
+              <el-tooltip content={rest.join('、')} placement="top">
+                <el-tag size="small">+{rest.length}</el-tag>
+              </el-tooltip>
+            )}
+          </span>
+        );
+      },
     },
     {
       label: "状态",
@@ -170,55 +185,48 @@ export function useUser(tableRef: Ref) {
   const curScore = ref();
   const roleOptions = ref([]);
 
-  function onChange({ row, index }) {
-    ElMessageBox.confirm(
-      `确认要<strong>${
-        row.status === 0 ? "停用" : "启用"
-      }</strong><strong style='color:var(--el-color-primary)'>${
-        row.username
-      }</strong>用户吗?`,
-      "系统提示",
-      {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning",
-        dangerouslyUseHTMLString: true,
-        draggable: true,
-      },
-    )
-      .then(() => {
-        switchLoadMap.value[index] = Object.assign(
-          {},
-          switchLoadMap.value[index],
-          {
-            loading: true,
-          },
-        );
-        setTimeout(() => {
-          switchLoadMap.value[index] = Object.assign(
-            {},
-            switchLoadMap.value[index],
-            {
-              loading: false,
-            },
-          );
-          message("已成功修改用户状态", {
-            type: "success",
-          });
-        }, 300);
-      })
-      .catch(() => {
-        row.status === 0 ? (row.status = 1) : (row.status = 0);
-      });
+  async function onChange({ row, index }) {
+    try {
+      await ElMessageBox.confirm(
+        `确认要<strong>${
+          row.status === 0 ? "停用" : "启用"
+        }</strong><strong style='color:var(--el-color-primary)'>${
+          row.username
+        }</strong>用户吗?`,
+        "系统提示",
+        {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning",
+          dangerouslyUseHTMLString: true,
+          draggable: true,
+        },
+      );
+    } catch {
+      row.status === 0 ? (row.status = 1) : (row.status = 0);
+      return;
+    }
+
+    switchLoadMap.value[index] = { ...switchLoadMap.value[index], loading: true };
+    const { code } = await updateUser({ id: row.id, status: row.status });
+    switchLoadMap.value[index] = { ...switchLoadMap.value[index], loading: false };
+    if (code === 0) {
+      message("已成功修改用户状态", { type: "success" });
+    } else {
+      row.status === 0 ? (row.status = 1) : (row.status = 0);
+    }
   }
 
   function handleUpdate(row) {
     console.log(row);
   }
 
-  function handleDelete(row) {
-    message(`您删除了用户编号为${row.id}的这条数据`, { type: "success" });
-    onSearch();
+  async function handleDelete(row) {
+    const { code } = await deleteUser({ id: row.id });
+    if (code === 0) {
+      message(`已删除用户 ${row.username}`, { type: "success" });
+      onSearch();
+    }
   }
 
   function handleSizeChange(val: number) {
@@ -244,15 +252,16 @@ export function useUser(tableRef: Ref) {
   }
 
   /** 批量删除 */
-  function onbatchDel() {
-    // 返回当前选中的行
+  async function onbatchDel() {
     const curSelected = tableRef.value.getTableRef().getSelectionRows();
-    // 接下来根据实际业务，通过选中行的某项数据，比如下面的id，调用接口进行批量删除
-    message(`已删除用户编号为 ${getKeyList(curSelected, "id")} 的数据`, {
-      type: "success",
-    });
-    tableRef.value.getTableRef().clearSelection();
-    onSearch();
+    const ids = getKeyList(curSelected, "id");
+    if (!ids.length) return message("请先选择要删除的用户", { type: "warning" });
+    const { code } = await batchDeleteUser({ ids });
+    if (code === 0) {
+      message(`已删除 ${ids.length} 个用户`, { type: "success" });
+      tableRef.value.getTableRef().clearSelection();
+      onSearch();
+    }
   }
 
   async function onSearch() {
@@ -282,12 +291,12 @@ export function useUser(tableRef: Ref) {
       props: {
         formInline: {
           title,
-          nickname: row?.nickname ?? "",
+          id: row?.id ?? null,
           username: row?.username ?? "",
           password: row?.password ?? "",
-          phone: row?.phone ?? "",
           email: row?.email ?? "",
           sex: row?.sex ?? "",
+          roleIds: row?.roleIds ?? (title === '新增' ? [2] : undefined),
           status: row?.status ?? 1,
           remark: row?.remark ?? "",
         },
@@ -298,27 +307,28 @@ export function useUser(tableRef: Ref) {
       fullscreenIcon: true,
       closeOnClickModal: false,
       contentRenderer: () => h(editForm, { ref: formRef, formInline: null }),
-      beforeSure: (done, { options }) => {
+      beforeSure: async (done, { options }) => {
         const FormRef = formRef.value.getRef();
         const curData = options.props.formInline as FormItemProps;
-        function chores() {
-          message(`您${title}了用户名称为${curData.username}的这条数据`, {
-            type: "success",
-          });
-          done(); // 关闭弹框
-          onSearch(); // 刷新表格数据
-        }
-        FormRef.validate((valid) => {
+        FormRef.validate(async (valid) => {
           if (valid) {
-            console.log("curData", curData);
-            // 表单规则校验通过
             if (title === "新增") {
-              // 实际开发先调用新增接口，再进行下面操作
-              chores();
+              const { code, message: msg } = await createUser(curData);
+              if (code !== 0) {
+                message(msg || '创建失败', { type: "error" });
+                return;
+              }
+              message(`已新增用户 ${curData.username}`, { type: "success" });
             } else {
-              // 实际开发先调用修改接口，再进行下面操作
-              chores();
+              const { code, message: msg } = await updateUser({ id: curData.id, ...curData });
+              if (code !== 0) {
+                message(msg || '修改失败', { type: "error" });
+                return;
+              }
+              message(`已修改用户 ${curData.username}`, { type: "success" });
             }
+            done();
+            onSearch();
           }
         });
       },
@@ -412,17 +422,17 @@ export function useUser(tableRef: Ref) {
         </>
       ),
       closeCallBack: () => (pwdForm.newPwd = ""),
-      beforeSure: (done) => {
-        ruleFormRef.value.validate((valid) => {
+      beforeSure: async (done) => {
+        ruleFormRef.value.validate(async (valid) => {
           if (valid) {
-            // 表单规则校验通过
-            message(`已成功重置 ${row.username} 用户的密码`, {
-              type: "success",
-            });
-            console.log(pwdForm.newPwd);
-            // 根据实际业务使用pwdForm.newPwd和row里的某些字段去调用重置用户密码接口即可
-            done(); // 关闭弹框
-            onSearch(); // 刷新表格数据
+            const { code, message: msg } = await resetPassword({ id: row.id, password: pwdForm.newPwd });
+            if (code !== 0) {
+              message(msg || '重置失败', { type: "error" });
+              return;
+            }
+            message(`已成功重置 ${row.username} 用户的密码`, { type: "success" });
+            done();
+            onSearch();
           }
         });
       },

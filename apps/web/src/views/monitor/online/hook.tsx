@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { message } from "@/utils/message";
-import { getOnlineLogsList } from "@/api/system";
+import { getOnlineLogsList, forceOffline } from "@/api/system";
 import { reactive, ref, onMounted, toRaw } from "vue";
 import type { PaginationProps } from "@pureadmin/table";
 
@@ -21,6 +21,11 @@ export function useRole() {
       label: "序号",
       prop: "id",
       minWidth: 60,
+    },
+    {
+      label: "用户ID",
+      prop: "userId",
+      minWidth: 70,
     },
     {
       label: "用户名",
@@ -57,6 +62,7 @@ export function useRole() {
     {
       label: "操作",
       fixed: "right",
+      width: 100,
       slot: "operation",
     },
   ];
@@ -73,9 +79,12 @@ export function useRole() {
     console.log("handleSelectionChange", val);
   }
 
-  function handleOffline(row) {
-    message(`${row.username}已被强制下线`, { type: "success" });
-    onSearch();
+  async function handleOffline(row) {
+    const { code } = await forceOffline({ id: row.id });
+    if (code === 0) {
+      message(`${row.username}已被强制下线`, { type: "success" });
+      onSearch();
+    }
   }
 
   async function onSearch() {

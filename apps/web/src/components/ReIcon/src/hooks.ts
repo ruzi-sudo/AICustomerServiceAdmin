@@ -81,15 +81,14 @@ export function useRenderIcon(icon: any, attrs?: iconType): Component {
       },
     });
   } else {
-    // 通过是否存在 : 符号来判断是在线还是本地图标，存在即是在线图标，反之
+    // 优先走离线图标（已通过 addIcon 注册的），在线图标作为回退
+    // 路由中 meta.icon 为 "ep/home-filled" 这类 Iconify 名称时，优先匹配离线注册
     return defineComponent({
       name: "Icon",
       render() {
         if (!icon) return;
-        const IconifyIcon = icon.includes(":")
-          ? IconifyIconOnline
-          : IconifyIconOffline;
-        return h(IconifyIcon, {
+        // 不过滤冒号，统一先尝试离线，在线由 @iconify/vue 内部 fallback
+        return h(IconifyIconOffline, {
           icon,
           ...attrs,
         });

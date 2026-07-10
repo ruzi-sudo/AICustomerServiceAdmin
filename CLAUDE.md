@@ -41,20 +41,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Database
 
 ```bash
-# Start MySQL
-docker compose up -d
+# Start MySQL (init.sql auto-executes on first container start via Dockerfile.db)
+docker compose -f docker/docker-compose.yml up -d
 
-# Initialize schema + seed data
-docker exec -i pureadmin-db mysql -uroot -proot123 pureadmin < init.sql
+# If schema or seed data changed and you need a fresh database:
+docker compose -f docker/docker-compose.yml down -v && docker compose -f docker/docker-compose.yml up -d
 
-# Connect (read-only queries via MCP)
-# Use the `mcp__mcp_server_mysql__mysql_query` tool
+# Direct connection:
+mysql -h 127.0.0.1 -uroot -proot123 pureadmin
 ```
 
 - **Host**: `127.0.0.1:3306` (Docker container `pureadmin-db`)
 - **Database**: `pureadmin` / **User**: `root` / **Password**: `root123`
 - **Schema**: Drizzle ORM in `apps/server/src/db/schema/*.ts` — edit these, then run `drizzle-kit push` or `drizzle-kit generate`
-- **Full SQL**: `init.sql` contains the complete schema, indexes, and seed data
+- **init.sql**: `docker/init.sql` — Complete schema + indexes + seed data (auto-loaded by `docker/Dockerfile.db` via MySQL's `docker-entrypoint-initdb.d` on first start)
 - **Default passwords**: Both `admin` and `common` use `admin123` (bcrypt-hashed)
 
 ---
@@ -70,10 +70,25 @@ AICustomerServiceAdmin/
 │   └── server/         # Hono backend API (port 8080)
 ├── packages/
 │   └── config/         # Shared ESLint & TypeScript configs
-├── docker-compose.yml  # MySQL 8.0 (container: pureadmin-db)
+├── docker-compose.yml  # MySQL 8.0 (container: pureadmin-db) — 已移至 docker/
+├── Dockerfile.db       # MySQL image with init.sql auto-load — 已移至 docker/
 ├── .mcp.json           # MySQL MCP server (read-only)
-└── init.sql            # Full schema + seed data
+├── init.sql            # Full schema + seed data
+└── .env.db             # MySQL env vars (MYSQL_ROOT_PASSWORD, MYSQL_DATABASE)
 ```
+
+### Backend: adding a new module
+
+New route modules follow a consistent three-file pattern inside `apps/server/src/routes/<name>/`:
+
+```
+routes/<name>/
+├── <name>.routes.ts    # OpenAPI route definitions (Zod + hono/zod-openapi)
+├── <name>.handlers.ts  # Route registration on the module router + handler functions
+└── <name>.schemas.ts   # Zod schemas for request/response validation
+```
+
+Then register the module router in `apps/server/src/routes/app.route.ts`. Business logic goes in `apps/server/src/service/<name>.service.ts`.
 
 ### Backend structure (`apps/server/src/`)
 
@@ -136,7 +151,7 @@ src/
 ├── main.ts                    # App bootstrap — installs plugins, directives, components
 ├── router/
 │   ├── index.ts               # Vue Router — static routes + dynamic init from /api/get-async-routes
-│   ├── modules/               # Static route modules (auto-imported, except remaining.ts & chatai.ts)
+│   ├── modules/               # Static route modules (auto-imported via import.meta.glob)
 │   │   ├── home.ts            # Home/welcome route
 │   │   ├── remaining.ts       # Routes not shown in menu (login, 403, 404, redirect)
 │   │   └── error.ts           # Error pages
@@ -180,10 +195,10 @@ src/
 ```
 
 **Key frontend patterns**:
-- Router uses `import.meta.glob` to auto-import static routes from `router/modules/**/*.ts` (excludes `remaining.ts` and `chatai.ts` — chat routes come from backend)
-- Dynamic routes fetched from `/api/get-async-routes` after login, merged with static routes in Pinia permission store
-- API calls use Axios wrapper at `src/utils/http/` with automatic token refresh
-- Store modules export both `useXxxStore` (inside setup) and `useXxxStoreHook` (outside setup, for router/layout hooks)
+- Router uses `import.meta.glob(["./modules/**/*.ts", "!./modules/**/remaining.ts", "!./modules/**/chatai.ts"], { eager: true })` to auto-import static routes. Adding a new `.ts` file in `router/modules/` auto-registers it; to exclude a module from auto-import, add it to the glob's negative patterns in `router/index.ts`
+- Dynamic routes (including chat-ai) fetched from `/api/get-async-routes` after login, merged with static routes in Pinia permission store. These are defined in `sys_pages` database table and assigned to roles via `sys_role_pages`
+- API calls use Axios wrapper at `src/utils/http/` with automatic token refresh interceptor
+- Store modules export both `useXxxStore` (inside Vue setup) and `useXxxStoreHook` (outside setup, for router/layout hooks)
 - `@pureadmin/utils` provides many utilities (`isUrl`, `cloneDeep`, `storageLocal`, etc.)
 - i18n via `vue-i18n` with Chinese as default locale
 

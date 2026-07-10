@@ -12,6 +12,24 @@ route.openapi(routes.listMenus, async (c) => {
   return c.json({ code: 0, message: '操作成功', data });
 });
 
+route.openapi(routes.createMenu, async (c) => {
+  const body = c.req.valid('json');
+  const data = await menuService.createMenu(body);
+  return c.json({ code: 0, message: '操作成功', data });
+});
+
+route.openapi(routes.updateMenu, async (c) => {
+  const body = c.req.valid('json');
+  await menuService.updateMenu(body);
+  return c.json({ code: 0, message: '操作成功', data: {} });
+});
+
+route.openapi(routes.deleteMenu, async (c) => {
+  const body = c.req.valid('json');
+  await menuService.deleteMenu(body.id);
+  return c.json({ code: 0, message: '操作成功', data: {} });
+});
+
 route.openapi(routes.getAsyncRoutes, async (c) => {
   const user = c.get('user') as { roles: string[] };
   const data = await menuService.getAsyncRoutes(user.roles);

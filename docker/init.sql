@@ -24,9 +24,7 @@ CREATE TABLE IF NOT EXISTS sys_users (
     id          INT PRIMARY KEY AUTO_INCREMENT COMMENT '用户ID',
     username    VARCHAR(64)  UNIQUE NOT NULL COMMENT '用户名',
     password    VARCHAR(255) NOT NULL COMMENT '密码',
-    nickname    VARCHAR(64)  NOT NULL COMMENT '用户昵称',
     avatar      VARCHAR(512) COMMENT '头像URL',
-    phone       VARCHAR(20)  COMMENT '手机号',
     email       VARCHAR(128) COMMENT '邮箱',
     sex         TINYINT DEFAULT 0 COMMENT '性别(0男 1女)',
     status      TINYINT DEFAULT 1 COMMENT '状态(1启用 0停用)',
@@ -106,6 +104,7 @@ CREATE TABLE IF NOT EXISTS sys_role_pages (
 -- ----------------------------
 CREATE TABLE IF NOT EXISTS sys_login_logs (
     id          INT PRIMARY KEY AUTO_INCREMENT COMMENT '日志ID',
+    user_id     INT DEFAULT 0 COMMENT '用户ID',
     username    VARCHAR(64)  NOT NULL COMMENT '用户名',
     ip          VARCHAR(64)  COMMENT '登录IP',
     address     VARCHAR(128) COMMENT '登录地点',
@@ -116,37 +115,24 @@ CREATE TABLE IF NOT EXISTS sys_login_logs (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT '登录日志表';
 
 -- ----------------------------
--- 8. 操作日志表
--- ----------------------------
-CREATE TABLE IF NOT EXISTS sys_operation_logs (
-    id              INT PRIMARY KEY AUTO_INCREMENT COMMENT '日志ID',
-    username        VARCHAR(64)  NOT NULL COMMENT '操作人',
-    module          VARCHAR(64)  COMMENT '所属模块',
-    operation       VARCHAR(255) COMMENT '操作描述',
-    request_url     VARCHAR(512) COMMENT '请求地址',
-    request_method  VARCHAR(16)  COMMENT '请求方法(GET/POST/PUT/DELETE)',
-    request_params  TEXT COMMENT '请求参数',
-    response_data   TEXT COMMENT '响应数据',
-    ip              VARCHAR(64)  COMMENT '操作IP',
-    address         VARCHAR(128) COMMENT '操作地点',
-    status          TINYINT DEFAULT 1 COMMENT '状态(1成功 0失败)',
-    created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT '操作日志表';
-
--- ----------------------------
--- 9. 系统日志表 (异常/错误日志)
+-- 8. 系统日志表 (异常/错误日志)
 -- ----------------------------
 CREATE TABLE IF NOT EXISTS sys_system_logs (
     id              INT PRIMARY KEY AUTO_INCREMENT COMMENT '日志ID',
+    user_id         INT DEFAULT 0 COMMENT '用户ID',
     username        VARCHAR(64)  COMMENT '操作人',
     module          VARCHAR(64)  COMMENT '模块',
     operation       VARCHAR(255) COMMENT '操作描述',
     request_url     VARCHAR(512) COMMENT '请求地址',
     request_method  VARCHAR(16)  COMMENT '请求方法',
     request_params  TEXT COMMENT '请求参数',
+    response_data   TEXT COMMENT '响应数据',
     error_message   TEXT COMMENT '错误信息',
     ip              VARCHAR(64)  COMMENT '来源IP',
     address         VARCHAR(128) COMMENT '地点',
+    `system`        VARCHAR(64)  COMMENT '操作系统',
+    browser         VARCHAR(64)  COMMENT '浏览器',
+    takes_time      INT DEFAULT 0 COMMENT '请求耗时(ms)',
     status          TINYINT DEFAULT 0 COMMENT '状态(0异常)',
     created_at      DATETIME DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT '系统日志表';
@@ -189,12 +175,12 @@ INSERT INTO sys_configs (config_key, config_value, description) VALUES
 -- ----------------------------
 -- sys_users (密码: admin123)
 -- ----------------------------
-INSERT INTO sys_users (id, username, password, nickname, avatar, phone, email, sex, status, remark) VALUES
-(1, 'admin',  '$2a$10$dvAenDGUE2prXBAKMuhpj.ALgUIIZP59GeeMp/QXqh5QonPgYsZMK', '小铭',
- 'https://avatars.githubusercontent.com/u/44761321', '15888886789', 'admin@pureadmin.cn',
+INSERT INTO sys_users (id, username, password, avatar, email, sex, status, remark) VALUES
+(1, 'admin',  '$2a$10$dvAenDGUE2prXBAKMuhpj.ALgUIIZP59GeeMp/QXqh5QonPgYsZMK',
+ 'https://avatars.githubusercontent.com/u/44761321', 'admin@pureadmin.cn',
  0, 1, '管理员'),
-(2, 'common', '$2a$10$dvAenDGUE2prXBAKMuhpj.ALgUIIZP59GeeMp/QXqh5QonPgYsZMK', '小林',
- 'https://avatars.githubusercontent.com/u/52823142', '18288882345', 'common@pureadmin.cn',
+(2, 'common', '$2a$10$dvAenDGUE2prXBAKMuhpj.ALgUIIZP59GeeMp/QXqh5QonPgYsZMK',
+ 'https://avatars.githubusercontent.com/u/52823142', 'common@pureadmin.cn',
  1, 1, '普通用户');
 
 -- ----------------------------
@@ -225,17 +211,16 @@ INSERT INTO sys_pages (id, parent_id, menu_type, title, name, path, component, `
 (4,  3, 0, 'chat-ai',             'ChatAi',  '/chatai/index', 'views/chatai/index.vue', 1,  NULL, NULL),
 
 -- 系统管理
-(5,  0, 0, 'menus.pureSysManagement', NULL,  '/system',    NULL,                        2,  'ri:settings-3-line', NULL),
-(6,  5, 0, 'menus.pureUser',      'SystemUser',  '/system/user/index',  'views/system/user/index.vue',  1,  'ri:admin-line', NULL),
-(7,  5, 0, 'menus.pureRole',      'SystemRole',  '/system/role/index',  'views/system/role/index.vue',  2,  'ri:admin-fill', NULL),
-(8,  5, 0, 'menus.pureSystemMenu','SystemMenu',  '/system/menu/index',  'views/system/menu/index.vue',  3,  'ep:menu', NULL),
+(5,  0, 0, 'menus.pureSysManagement', NULL,  '/system',    NULL,                        2,  'ri/settings-3-line', NULL),
+(6,  5, 0, 'menus.pureUser',      'SystemUser',  '/system/user/index',  'views/system/user/index.vue',  1,  'ri/admin-line', NULL),
+(7,  5, 0, 'menus.pureRole',      'SystemRole',  '/system/role/index',  'views/system/role/index.vue',  2,  'ri/admin-fill', NULL),
+(8,  5, 0, 'menus.pureSystemMenu','SystemMenu',  '/system/menu/index',  'views/system/menu/index.vue',  3,  'ep/menu', NULL),
 
 -- 系统监控
-(9,  0, 0, 'menus.pureSysMonitor', NULL,  '/monitor',      NULL,                        3,  'ep:monitor', NULL),
-(10, 9, 0, 'menus.pureOnlineUser', 'OnlineUser', '/monitor/online-user',    'views/monitor/online/index.vue',         1, 'ri:user-voice-line', NULL),
-(11, 9, 0, 'menus.pureLoginLog',   'LoginLog',   '/monitor/login-logs',    'views/monitor/logs/login/index.vue',    2, 'ri:window-line', NULL),
-(12, 9, 0, 'menus.pureOperationLog', 'OperationLog', '/monitor/operation-logs', 'views/monitor/logs/operation/index.vue', 3, 'ri:history-fill', NULL),
-(13, 9, 0, 'menus.pureSystemLog',  'SystemLog',  '/monitor/system-logs',  'views/monitor/logs/system/index.vue',   4, 'ri:file-search-line', NULL);
+(9,  0, 0, 'menus.pureSysMonitor', NULL,  '/monitor',      NULL,                        3,  'ep/monitor', NULL),
+(10, 9, 0, 'menus.pureOnlineUser', 'OnlineUser', '/monitor/online-user',    'views/monitor/online/index.vue',         1, 'ri/user-voice-line', NULL),
+(11, 9, 0, 'menus.pureLoginLog',   'LoginLog',   '/monitor/login-logs',    'views/monitor/logs/login/index.vue',    2, 'ri/window-line', NULL),
+(13, 9, 0, 'menus.pureSystemLog',  'SystemLog',  '/monitor/system-logs',  'views/monitor/logs/system/index.vue',   4, 'ri/file-search-line', NULL);
 
 -- sys_role_pages (角色页面权限)
 -- 超级管理员拥有所有页面权限
@@ -252,17 +237,6 @@ INSERT INTO sys_login_logs (username, ip, address, `system`, browser, status, lo
 ('admin',  '192.168.1.100', '中国河南省信阳市', 'macOS',   'Chrome',  1, '2025-01-01 09:00:00'),
 ('common', '192.168.1.101', '中国广东省深圳市', 'Windows', 'Firefox', 1, '2025-01-01 09:30:00');
 
--- sys_operation_logs (示例数据)
-INSERT INTO sys_operation_logs (username, module, operation, request_url, request_method, ip, address, status) VALUES
-('admin',  '系统管理', '新增用户', '/user/add',         'POST', '192.168.1.100', '中国河南省信阳市', 1),
-('common', '系统管理', '修改用户', '/user/update',      'POST', '192.168.1.101', '中国广东省深圳市', 1),
-('admin',  '角色管理', '分配权限', '/role/assign',      'POST', '192.168.1.100', '中国河南省信阳市', 1),
-('admin',  '菜单管理', '新增菜单', '/menu/add',         'POST', '192.168.1.100', '中国河南省信阳市', 1);
-
--- sys_system_logs (示例数据)
-INSERT INTO sys_system_logs (username, module, operation, request_url, request_method, ip, address, error_message) VALUES
-('admin',  '系统管理', '查询用户', '/user/list', 'GET', '192.168.1.100', '中国河南省信阳市', '数据库连接超时');
-
 -- ============================================================
 -- Indexes
 -- ============================================================
@@ -272,7 +246,6 @@ CREATE INDEX idx_role_pages_role_id    ON sys_role_pages(role_id);
 CREATE INDEX idx_role_pages_page_id    ON sys_role_pages(page_id);
 CREATE INDEX idx_pages_parent_id       ON sys_pages(parent_id);
 CREATE INDEX idx_login_logs_username   ON sys_login_logs(username);
-CREATE INDEX idx_operation_logs_username ON sys_operation_logs(username);
 CREATE INDEX idx_system_logs_username  ON sys_system_logs(username);
 CREATE INDEX idx_system_logs_module    ON sys_system_logs(module);
 
@@ -299,6 +272,8 @@ CREATE TABLE IF NOT EXISTS sys_system_log_details (
     log_id          INT NOT NULL COMMENT '关联系统日志ID',
     request_body    TEXT COMMENT '请求体',
     request_headers TEXT COMMENT '请求头',
+    response_headers TEXT COMMENT '响应头',
+    response_body   TEXT COMMENT '响应体',
     stack_trace     TEXT COMMENT '异常堆栈',
     trace_id        VARCHAR(64) COMMENT '链路追踪ID',
     request_time    DATETIME COMMENT '请求时间'
@@ -311,6 +286,7 @@ CREATE TABLE IF NOT EXISTS sys_system_log_details (
 -- ----------------------------
 CREATE TABLE IF NOT EXISTS sys_online_users (
     id              INT PRIMARY KEY AUTO_INCREMENT COMMENT '记录ID',
+    user_id         INT DEFAULT 0 COMMENT '用户ID',
     username        VARCHAR(64)  NOT NULL COMMENT '用户名',
     ip              VARCHAR(64)  COMMENT '来源IP',
     address         VARCHAR(128) COMMENT '地点',
@@ -318,12 +294,6 @@ CREATE TABLE IF NOT EXISTS sys_online_users (
     browser         VARCHAR(64)  COMMENT '浏览器',
     login_time      DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '登录时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT '在线用户表';
-
--- Seed Data: sys_online_users
--- ----------------------------
-INSERT INTO sys_online_users (username, ip, address, `system`, browser, login_time) VALUES
-('admin',  '192.168.1.100', '中国河南省信阳市', 'macOS',   'Chrome',   NOW()),
-('common', '192.168.1.101', '中国广东省深圳市', 'Windows', 'Firefox',  DATE_SUB(NOW(), INTERVAL 2 HOUR));
 
 -- ----------------------------
 -- Seed Data: sys_mine_logs

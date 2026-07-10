@@ -141,6 +141,10 @@ class PureHttp {
       (error: PureHttpError) => {
         const $error = error;
         $error.isCancelRequest = Axios.isCancel($error);
+        // 对于有响应体的错误（如 400/401），透传 response.data 方便上层使用 message
+        if ($error.response?.data) {
+          return Promise.reject($error.response.data);
+        }
         // 所有的响应异常 区分来源为取消请求/非取消请求
         return Promise.reject($error);
       },

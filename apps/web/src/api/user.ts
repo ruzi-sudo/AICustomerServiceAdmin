@@ -72,6 +72,12 @@ type ResultTable = {
   };
 };
 
+type Result = {
+  code: number;
+  message: string;
+  data?: any;
+};
+
 /** 登录 */
 export const getLogin = (data?: object) => {
   return http.request<UserResult>("post", "/api/login", { data });
@@ -82,6 +88,11 @@ export const refreshTokenApi = (data?: object) => {
   return http.request<RefreshTokenResult>("post", "/api/refresh-token", {
     data,
   });
+};
+
+/** 退出登录 */
+export const logoutApi = () => {
+  return http.request<Result>("post", "/api/logout");
 };
 
 /** 账户设置-个人信息 */

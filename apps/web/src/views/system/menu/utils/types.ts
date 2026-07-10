@@ -16,7 +16,6 @@ interface FormItemProps {
   activePath: string;
   auths: string;
   frameSrc: string;
-  frameLoading: boolean;
   keepAlive: boolean;
   hiddenTag: boolean;
   fixedTag: boolean;

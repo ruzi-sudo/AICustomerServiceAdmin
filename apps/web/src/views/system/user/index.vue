@@ -63,10 +63,10 @@ const {
             class="w-45!"
           />
         </el-form-item>
-        <el-form-item label="手机号码：" prop="phone">
+        <el-form-item label="邮箱：" prop="email">
           <el-input
-            v-model="form.phone"
-            placeholder="请输入手机号码"
+            v-model="form.email"
+            placeholder="请输入邮箱"
             clearable
             class="w-45!"
           />
@@ -212,18 +212,6 @@ const {
                         @click="handleReset(row)"
                       >
                         重置密码
-                      </el-button>
-                    </el-dropdown-item>
-                    <el-dropdown-item>
-                      <el-button
-                        :class="buttonClass"
-                        link
-                        type="primary"
-                        :size="size"
-                        :icon="useRenderIcon(Role)"
-                        @click="handleRole(row)"
-                      >
-                        分配角色
                       </el-button>
                     </el-dropdown-item>
                   </el-dropdown-menu>

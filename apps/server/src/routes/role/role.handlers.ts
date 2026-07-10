@@ -20,6 +20,42 @@ route.openapi(routes.listRoles, async (c) => {
   return c.json({ code: 0, message: '操作成功', data });
 });
 
+route.openapi(routes.createRole, async (c) => {
+  const body = c.req.valid('json');
+  try {
+    const data = await roleService.createRole(body);
+    return c.json({ code: 0, message: '操作成功', data });
+  } catch (err: any) {
+    return c.json({ code: err.code || 10001, message: err.message || '创建失败', data: {} }, err.status || 400);
+  }
+});
+
+route.openapi(routes.updateRole, async (c) => {
+  const body = c.req.valid('json');
+  try {
+    await roleService.updateRole(body);
+    return c.json({ code: 0, message: '操作成功', data: {} });
+  } catch (err: any) {
+    return c.json({ code: err.code || 10001, message: err.message || '修改失败', data: {} }, err.status || 400);
+  }
+});
+
+route.openapi(routes.deleteRole, async (c) => {
+  const body = c.req.valid('json');
+  try {
+    await roleService.deleteRole(body.id);
+    return c.json({ code: 0, message: '操作成功', data: {} });
+  } catch (err: any) {
+    return c.json({ code: err.code || 10001, message: err.message || '删除失败', data: {} }, err.status || 400);
+  }
+});
+
+route.openapi(routes.saveRoleMenu, async (c) => {
+  const body = c.req.valid('json');
+  await roleService.saveRoleMenu(body.id, body.menuIds);
+  return c.json({ code: 0, message: '操作成功', data: {} });
+});
+
 route.openapi(routes.roleMenu, async (c) => {
   const data = await menuService.getRoleMenuTree();
   return c.json({ code: 0, message: '操作成功', data });

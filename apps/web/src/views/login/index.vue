@@ -81,8 +81,8 @@ const onLogin = async (formEl: FormInstance | undefined) => {
             message(t("login.pureLoginSuccess"), { type: "success" });
           });
         })
-        .catch((_err) => {
-          message(t("login.pureLoginFail"), { type: "error" });
+        .catch((err) => {
+          message(err?.message || err || t("login.pureLoginFail"), { type: "error" });
         })
         .finally(() => {
           disabled.value = false;

@@ -3,12 +3,11 @@ interface FormItemProps {
   /** 用于判断是`新增`还是`修改` */
   title: string;
   parentId: number;
-  nickname: string;
   username: string;
   password: string;
-  phone: string | number;
   email: string;
   sex: string | number;
+  roleIds?: number[];
   status: number;
   remark: string;
 }

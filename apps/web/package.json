@@ -86,7 +86,6 @@
     "typeit": "^8.8.7",
     "v-contextmenu": "^3.2.0",
     "vditor": "^3.11.2",
-    "version-rocket": "^1.7.4",
     "vue": "^3.5.35",
     "vue-i18n": "^11.4.4",
     "vue-json-pretty": "^2.6.0",
@@ -105,11 +104,10 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@commitlint/cli": "^21.0.2",
-    "@commitlint/config-conventional": "^21.0.2",
-    "@commitlint/types": "^21.0.1",
     "@eslint/js": "^10.0.1",
     "@faker-js/faker": "^10.4.0",
+    "@iconify-json/ep": "^1.2.4",
+    "@iconify-json/ri": "^1.2.10",
     "@iconify/json": "^2.2.481",
     "@iconify/vue": "4.2.0",
     "@intlify/unplugin-vue-i18n": "^11.2.3",

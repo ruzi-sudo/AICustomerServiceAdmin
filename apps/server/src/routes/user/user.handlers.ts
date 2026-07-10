@@ -21,6 +21,52 @@ route.openapi(routes.listUsers, async (c) => {
   return c.json({ code: 0, message: '操作成功', data });
 });
 
+route.openapi(routes.createUser, async (c) => {
+  const body = c.req.valid('json');
+  try {
+    const data = await userService.createUser(body);
+    return c.json({ code: 0, message: '操作成功', data });
+  } catch (err: any) {
+    return c.json({ code: err.code || 10001, message: err.message || '创建失败', data: {} }, err.status || 400);
+  }
+});
+
+route.openapi(routes.updateUser, async (c) => {
+  const body = c.req.valid('json');
+  try {
+    await userService.updateUser(body);
+    return c.json({ code: 0, message: '操作成功', data: {} });
+  } catch (err: any) {
+    return c.json({ code: err.code || 10001, message: err.message || '修改失败', data: {} }, err.status || 400);
+  }
+});
+
+route.openapi(routes.deleteUser, async (c) => {
+  const body = c.req.valid('json');
+  try {
+    await userService.deleteUser(body.id);
+    return c.json({ code: 0, message: '操作成功', data: {} });
+  } catch (err: any) {
+    return c.json({ code: err.code || 10001, message: err.message || '删除失败', data: {} }, err.status || 400);
+  }
+});
+
+route.openapi(routes.batchDeleteUser, async (c) => {
+  const body = c.req.valid('json');
+  await userService.batchDeleteUser(body.ids);
+  return c.json({ code: 0, message: '操作成功', data: {} });
+});
+
+route.openapi(routes.resetPassword, async (c) => {
+  const body = c.req.valid('json');
+  try {
+    await userService.resetPassword(body.id, body.password);
+    return c.json({ code: 0, message: '操作成功', data: {} });
+  } catch (err: any) {
+    return c.json({ code: err.code || 10001, message: err.message || '重置失败', data: {} }, err.status || 400);
+  }
+});
+
 route.openapi(routes.listAllRoles, async (c) => {
   const data = await roleService.listAllRoles();
   return c.json({ code: 0, message: '操作成功', data });

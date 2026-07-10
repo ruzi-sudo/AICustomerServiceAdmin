@@ -23,3 +23,12 @@ export const refreshToken = createRoute({
     '400': { description: '参数错误', content: { 'application/json': { schema: ErrorResponseSchema } } },
   },
 });
+
+export const logout = createRoute({
+  method: 'post',
+  path: '/logout',
+  tags: ['auth'],
+  responses: {
+    '200': { description: '退出成功' },
+  },
+});

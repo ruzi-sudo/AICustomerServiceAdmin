@@ -1,10 +1,10 @@
 import bcrypt from 'bcryptjs';
-import { eq, and, isNotNull, sql, count } from 'drizzle-orm';
+import { eq, and, isNotNull, sql, count, desc } from 'drizzle-orm';
 import { getDb } from '../db';
-import { sysUsers, sysRoles, sysUserRoles, sysPages, sysRolePages } from '../db/schema';
+import { sysUsers, sysRoles, sysUserRoles, sysPages, sysRolePages, sysOnlineUsers, sysLoginLogs } from '../db/schema';
 import { signToken, signRefreshToken } from '../middlewares/auth';
 
-export async function login(username: string, password: string) {
+export async function login(username: string, password: string, clientInfo?: { ip?: string; ua?: string }) {
   const db = await getDb();
 
   const [user] = await db
@@ -12,9 +12,7 @@ export async function login(username: string, password: string) {
       id: sysUsers.id,
       username: sysUsers.username,
       password: sysUsers.password,
-      nickname: sysUsers.nickname,
       avatar: sysUsers.avatar,
-      phone: sysUsers.phone,
       email: sysUsers.email,
       status: sysUsers.status,
     })
@@ -64,10 +62,64 @@ export async function login(username: string, password: string) {
   const accessToken = signToken(payload);
   const refreshToken = signRefreshToken({ userId: user.id, username: user.username });
 
+  // 记录在线用户
+  try {
+    const ua = clientInfo?.ua || '';
+    const browserMatch = ua.match(/(Chrome|Firefox|Safari|Edge|Opera)\/[\d.]+/);
+    const browser = browserMatch ? browserMatch[0] : '未知';
+    const systemMatch = ua.match(/\(([^)]+)\)/);
+    let system = '未知';
+    if (systemMatch) {
+      const raw = systemMatch[1];
+      if (/Windows NT/.test(raw)) system = 'Windows';
+      else if (/Mac OS X/.test(raw)) system = 'macOS';
+      else if (/Linux/.test(raw) && !/Android/.test(raw)) system = 'Linux';
+      else if (/Android/.test(raw)) system = 'Android';
+      else if (/iOS/.test(raw)) system = 'iOS';
+    }
+
+    const ip = clientInfo?.ip || '127.0.0.1';
+    // 异步查询 IP 归属地，不阻塞登录
+    let address = '';
+    const isPrivate = /^(127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.|::1$)/.test(ip);
+    if (ip && !isPrivate) {
+      lookupIpAddress(ip).then(addr => {
+        if (addr) {
+          getDb().then(db =>
+            db.update(sysOnlineUsers)
+              .set({ address: addr })
+              .where(and(eq(sysOnlineUsers.username, user.username), eq(sysOnlineUsers.ip, ip)))
+          ).catch(() => {});
+        }
+      }).catch(() => {});
+    }
+
+    await db.insert(sysOnlineUsers).values({
+      userId: user.id,
+      username: user.username,
+      ip,
+      address,
+      system,
+      browser,
+      loginTime: new Date(),
+    });
+
+    // 写入登录日志
+    await db.insert(sysLoginLogs).values({
+      userId: user.id,
+      username: user.username,
+      ip,
+      address,
+      system,
+      browser,
+      status: 1,
+      loginTime: new Date(),
+    });
+  } catch { /* 非关键 */ }
+
   return {
     avatar: user.avatar || '',
     username: user.username,
-    nickname: user.nickname,
     roles: roleCodes,
     permissions: roleCodes.includes('admin') ? ['*:*:*'] : permList,
     accessToken,
@@ -94,4 +146,17 @@ export async function refreshToken(token: string) {
     refreshToken: newRefreshToken,
     expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19),
   };
+}
+
+/** 通过 ip-api.com 免费接口查询 IP 归属地（中国区可正常返回中文地址） */
+async function lookupIpAddress(ip: string): Promise<string> {
+  try {
+    const res = await fetch(`http://ip-api.com/json/${ip}?lang=zh-CN`, { signal: AbortSignal.timeout(3000) });
+    if (!res.ok) return '';
+    const data = await res.json() as { status: string; country: string; regionName: string; city: string };
+    if (data.status === 'success') {
+      return `${data.country}${data.regionName}${data.city}`;
+    }
+  } catch { /* 超时或失败时跳过 */ }
+  return '';
 }

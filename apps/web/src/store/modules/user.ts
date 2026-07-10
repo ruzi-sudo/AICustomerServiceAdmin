@@ -12,6 +12,7 @@ import {
   type RefreshTokenResult,
   getLogin,
   refreshTokenApi,
+  logoutApi,
 } from "@/api/user";
 import { useMultiTagsStoreHook } from "./multiTags";
 import { type DataInfo, setToken, removeToken, userKey } from "@/utils/auth";
@@ -92,8 +93,9 @@ export const useUserStore = defineStore("pure-user", {
           });
       });
     },
-    /** 前端登出（不调用接口） */
-    logOut() {
+    /** 前端登出（调用后端接口清除在线用户记录） */
+    async logOut() {
+      try { await logoutApi(); } catch { /* ignore */ }
       this.username = "";
       this.roles = [];
       this.permissions = [];

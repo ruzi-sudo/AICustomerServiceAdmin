@@ -28,6 +28,14 @@ const columns = [
     prop: "browser",
   },
   {
+    label: "用户ID",
+    prop: "userId",
+  },
+  {
+    label: "用户名",
+    prop: "username",
+  },
+  {
     label: "所属模块",
     prop: "module",
   },

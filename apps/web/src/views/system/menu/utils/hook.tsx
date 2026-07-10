@@ -1,7 +1,7 @@
 import editForm from "../form.vue";
 import { handleTree } from "@/utils/tree";
 import { message } from "@/utils/message";
-import { getMenuList } from "@/api/system";
+import { getMenuList, createMenu, updateMenu, deleteMenu } from "@/api/system";
 import { transformI18n } from "@/plugins/i18n";
 import { addDialog } from "@/components/ReDialog";
 import { reactive, ref, onMounted, h } from "vue";
@@ -139,6 +139,7 @@ export function useMenu() {
       title: `${title}菜单`,
       props: {
         formInline: {
+          id: row?.id ?? null,
           menuType: row?.menuType ?? 0,
           higherMenuOptions: formatHigherMenuOptions(cloneDeep(dataList.value)),
           parentId: row?.parentId ?? 0,
@@ -169,41 +170,36 @@ export function useMenu() {
       fullscreenIcon: true,
       closeOnClickModal: false,
       contentRenderer: () => h(editForm, { ref: formRef, formInline: null }),
-      beforeSure: (done, { options }) => {
+      beforeSure: async (done, { options }) => {
         const FormRef = formRef.value.getRef();
         const curData = options.props.formInline as FormItemProps;
-        function chores() {
-          message(
-            `您${title}了菜单名称为${transformI18n(curData.title)}的这条数据`,
-            {
-              type: "success",
-            },
-          );
-          done(); // 关闭弹框
-          onSearch(); // 刷新表格数据
-        }
-        FormRef.validate((valid) => {
+        FormRef.validate(async (valid) => {
           if (valid) {
-            console.log("curData", curData);
-            // 表单规则校验通过
             if (title === "新增") {
-              // 实际开发先调用新增接口，再进行下面操作
-              chores();
+              const { code, message: msg } = await createMenu(curData);
+              if (code !== 0) { message(msg || '创建失败', { type: "error" }); return; }
+              message(`已新增菜单 ${transformI18n(curData.title)}`, { type: "success" });
             } else {
-              // 实际开发先调用修改接口，再进行下面操作
-              chores();
+              const { code, message: msg } = await updateMenu({ id: row?.id, ...curData });
+              if (code !== 0) { message(msg || '修改失败', { type: "error" }); return; }
+              message(`已修改菜单 ${transformI18n(curData.title)}`, { type: "success" });
             }
+            done();
+            onSearch();
           }
         });
       },
     });
   }
 
-  function handleDelete(row) {
-    message(`您删除了菜单名称为${transformI18n(row.title)}的这条数据`, {
-      type: "success",
-    });
-    onSearch();
+  async function handleDelete(row) {
+    const { code, message: msg } = await deleteMenu({ id: row.id });
+    if (code === 0) {
+      message(`已删除菜单 ${transformI18n(row.title)}`, { type: "success" });
+      onSearch();
+    } else {
+      message(msg || '删除失败', { type: "error" });
+    }
   }
 
   onMounted(() => {

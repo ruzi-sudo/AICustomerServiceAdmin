@@ -107,12 +107,17 @@ onMounted(() => {
         />
       </el-form-item>
       <el-form-item label="角色标识：" prop="code">
-        <el-input
+        <el-select
           v-model="form.code"
-          placeholder="请输入角色标识"
+          placeholder="请选择角色标识"
           clearable
+          multiple
+          collapse-tags
           class="w-45!"
-        />
+        >
+          <el-option label="admin" value="admin" />
+          <el-option label="common" value="common" />
+        </el-select>
       </el-form-item>
       <el-form-item label="状态：" prop="status">
         <el-select
@@ -189,6 +194,7 @@ onMounted(() => {
                 type="primary"
                 :size="size"
                 :icon="useRenderIcon(EditPen)"
+                :disabled="row.code === 'admin' || row.code === 'common'"
                 @click="openDialog('修改', row)"
               >
                 修改
@@ -203,6 +209,7 @@ onMounted(() => {
                     link
                     type="primary"
                     :size="size"
+                    :disabled="row.code === 'admin' || row.code === 'common'"
                     :icon="useRenderIcon(Delete)"
                   >
                     删除

@@ -3,15 +3,15 @@ version: "3.8"
 services:
   mysql:
     build:
-      context: .
-      dockerfile: Dockerfile.db
+      context: ..
+      dockerfile: docker/Dockerfile.db
       args:
         MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
     container_name: pureadmin-db
     ports:
       - "3306:3306"
     env_file:
-      - .env.db
+      - docker/.env.db
     volumes:
       - mysql_data:/var/lib/mysql
     restart: unless-stopped

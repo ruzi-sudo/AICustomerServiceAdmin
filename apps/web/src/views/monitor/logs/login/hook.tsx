@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { message } from "@/utils/message";
 import { getKeyList } from "@pureadmin/utils";
-import { getLoginLogsList } from "@/api/system";
+import { getLoginLogsList, deleteLoginLogs, clearLoginLogs } from "@/api/system";
 import { usePublicHooks } from "@/views/system/hooks";
 import type { PaginationProps } from "@pureadmin/table";
 import { type Ref, reactive, ref, onMounted, toRaw } from "vue";
@@ -33,7 +33,12 @@ export function useRole(tableRef: Ref) {
     {
       label: "序号",
       prop: "id",
-      minWidth: 90,
+      minWidth: 70,
+    },
+    {
+      label: "用户ID",
+      prop: "userId",
+      minWidth: 70,
     },
     {
       label: "用户名",
@@ -107,24 +112,25 @@ export function useRole(tableRef: Ref) {
   }
 
   /** 批量删除 */
-  function onbatchDel() {
-    // 返回当前选中的行
+  async function onbatchDel() {
     const curSelected = tableRef.value.getTableRef().getSelectionRows();
-    // 接下来根据实际业务，通过选中行的某项数据，比如下面的id，调用接口进行批量删除
-    message(`已删除序号为 ${getKeyList(curSelected, "id")} 的数据`, {
-      type: "success",
-    });
-    tableRef.value.getTableRef().clearSelection();
-    onSearch();
+    const ids = getKeyList(curSelected, "id");
+    if (!ids.length) return message("请先选择要删除的日志", { type: "warning" });
+    const { code } = await deleteLoginLogs({ ids });
+    if (code === 0) {
+      message(`已删除 ${ids.length} 条日志`, { type: "success" });
+      tableRef.value.getTableRef().clearSelection();
+      onSearch();
+    }
   }
 
   /** 清空日志 */
-  function clearAll() {
-    // 根据实际业务，调用接口删除所有日志数据
-    message("已删除所有日志数据", {
-      type: "success",
-    });
-    onSearch();
+  async function clearAll() {
+    const { code } = await clearLoginLogs();
+    if (code === 0) {
+      message("已清空所有登录日志", { type: "success" });
+      onSearch();
+    }
   }
 
   async function onSearch() {
