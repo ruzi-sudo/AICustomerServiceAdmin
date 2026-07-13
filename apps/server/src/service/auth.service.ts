@@ -3,6 +3,7 @@ import { eq, and, isNotNull, sql, count, desc } from 'drizzle-orm';
 import { getDb } from '../db';
 import { sysUsers, sysRoles, sysUserRoles, sysPages, sysRolePages, sysOnlineUsers, sysLoginLogs } from '../db/schema';
 import { signToken, signRefreshToken } from '../middlewares/auth';
+import { getUserCredentialByRefreshToken, replaceUserCredential, storeUserCredential } from './redis.service';
 
 export async function login(username: string, password: string, clientInfo?: { ip?: string; ua?: string }) {
   const db = await getDb();
@@ -61,6 +62,8 @@ export async function login(username: string, password: string, clientInfo?: { i
   const payload = { userId: user.id, username: user.username, roles: roleCodes };
   const accessToken = signToken(payload);
   const refreshToken = signRefreshToken({ userId: user.id, username: user.username });
+  let credentialStored = false;
+  let onlineUserId: number | null = null;
 
   // 记录在线用户
   try {
@@ -94,7 +97,7 @@ export async function login(username: string, password: string, clientInfo?: { i
       }).catch(() => {});
     }
 
-    await db.insert(sysOnlineUsers).values({
+    const [onlineUser] = await db.insert(sysOnlineUsers).values({
       userId: user.id,
       username: user.username,
       ip,
@@ -102,7 +105,18 @@ export async function login(username: string, password: string, clientInfo?: { i
       system,
       browser,
       loginTime: new Date(),
-    });
+    }).$returningId();
+
+    if (onlineUser?.id) {
+      onlineUserId = onlineUser.id;
+      credentialStored = await storeUserCredential({
+        userId: user.id,
+        username: user.username,
+        onlineUserId: onlineUser.id,
+        accessToken,
+        refreshToken,
+      });
+    }
 
     // 写入登录日志
     await db.insert(sysLoginLogs).values({
@@ -116,6 +130,13 @@ export async function login(username: string, password: string, clientInfo?: { i
       loginTime: new Date(),
     });
   } catch { /* 非关键 */ }
+
+  if (!credentialStored) {
+    if (onlineUserId) {
+      await db.delete(sysOnlineUsers).where(eq(sysOnlineUsers.id, onlineUserId));
+    }
+    throw { code: 10002, message: '登录凭证写入失败，请稍后重试', status: 500 };
+  }
 
   return {
     avatar: user.avatar || '',
@@ -136,10 +157,24 @@ export async function refreshToken(token: string) {
   const jwt = await import('jsonwebtoken');
   const JWT_SECRET = process.env.JWT_SECRET || 'pureadmin-jwt-secret-key';
   const decoded = jwt.default.verify(token, JWT_SECRET) as { userId: number; username: string };
+  const oldCredential = await getUserCredentialByRefreshToken(token);
+  if (!oldCredential) {
+    throw { code: 10001, message: '登录状态已过期，请重新登录', status: 401 };
+  }
 
   const payload = { userId: decoded.userId, username: decoded.username, roles: [] as string[] };
   const accessToken = signToken(payload);
   const newRefreshToken = signRefreshToken({ userId: decoded.userId, username: decoded.username });
+  const replaced = await replaceUserCredential(oldCredential, {
+    userId: decoded.userId,
+    username: decoded.username,
+    onlineUserId: oldCredential.onlineUserId,
+    accessToken,
+    refreshToken: newRefreshToken,
+  });
+  if (!replaced) {
+    throw { code: 10002, message: '登录凭证刷新失败，请重新登录', status: 500 };
+  }
 
   return {
     accessToken,

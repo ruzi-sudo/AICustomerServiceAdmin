@@ -1,11 +1,7 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
-import { eq } from 'drizzle-orm';
 import { validatorParamsHook } from '../../common/validator';
 import * as routes from './auth.routes';
 import * as authService from '../../service/auth.service';
-import { ParamsException } from '../../common/exception';
-import { getDb } from '../../db';
-import { sysOnlineUsers } from '../../db/schema';
 
 export const route = new OpenAPIHono({
   defaultHook: (result, c) => validatorParamsHook(result, c),

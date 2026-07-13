@@ -10,8 +10,9 @@ import {
 } from "./build/utils";
 
 export default async ({ mode }: ConfigEnv): Promise<UserConfigExport> => {
+  const envDir = pathResolve("../..", import.meta.url);
   const { VITE_PORT, VITE_COMPRESSION, VITE_PUBLIC_PATH } = wrapperEnv(
-    loadEnv(mode, root),
+    loadEnv(mode, envDir),
   );
   return {
     base: VITE_PUBLIC_PATH,

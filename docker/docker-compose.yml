@@ -11,10 +11,23 @@ services:
     ports:
       - "3306:3306"
     env_file:
-      - docker/.env.db
+      - ../.env
     volumes:
       - mysql_data:/var/lib/mysql
     restart: unless-stopped
 
+  redis:
+    image: redis:7-alpine
+    container_name: pureadmin-redis
+    command: redis-server --notify-keyspace-events Ex
+    env_file:
+      - ../.env
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
 volumes:
   mysql_data:
+  redis_data:

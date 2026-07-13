@@ -44,7 +44,11 @@ import {
  * 排除 chatai.ts，这些路由从后端数据库获取
  */
 const modules: Record<string, any> = import.meta.glob(
-  ["./modules/**/*.ts", "!./modules/**/remaining.ts", "!./modules/**/chatai.ts"],
+  [
+    "./modules/**/*.ts",
+    "!./modules/**/remaining.ts",
+    "!./modules/**/chatai.ts",
+  ],
   {
     eager: true,
   },

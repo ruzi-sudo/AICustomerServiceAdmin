@@ -17,7 +17,11 @@
     "allowJs": false,
     "resolveJsonModule": true,
     "lib": ["ESNext", "DOM"],
-    "declaration": false,
+    "composite": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "declarationDir": "dist/types",
+    "tsBuildInfoFile": "node_modules/.cache/tsconfig.tsbuildinfo",
     "paths": {
       "@/*": ["./src/*"],
       "@build/*": ["./build/*"]

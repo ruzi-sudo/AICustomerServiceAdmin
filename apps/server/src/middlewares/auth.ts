@@ -1,6 +1,7 @@
 import type { Context, Next } from 'hono';
 import jwt from 'jsonwebtoken';
 import { UnauthorizedException } from '../common/exception';
+import { isAccessTokenOnline } from '../service/redis.service';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'pureadmin-jwt-secret-key';
 
@@ -31,9 +32,14 @@ export async function authMiddleware(c: Context, next: Next) {
   const token = authHeader.slice(7);
   try {
     const payload = verifyToken(token);
+    const online = await isAccessTokenOnline(token);
+    if (!online) {
+      throw new UnauthorizedException('登录状态已过期，请重新登录');
+    }
     c.set('user', payload);
     await next();
   } catch (err) {
+    if (err instanceof UnauthorizedException) throw err;
     throw new UnauthorizedException('登录状态已过期，请重新登录');
   }
 }
