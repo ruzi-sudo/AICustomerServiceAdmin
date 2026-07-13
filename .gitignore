@@ -2,6 +2,7 @@ node_modules
 .turbo
 *.tsbuildinfo
 .claude
+.codex
 .env
 .env.local
 *.log
