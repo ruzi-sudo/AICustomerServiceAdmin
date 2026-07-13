@@ -30,13 +30,3 @@ export const getMine = createRoute({
     '401': { description: '未授权', content: { 'application/json': { schema: ErrorResponseSchema } } },
   },
 });
-
-export const getMineLogs = createRoute({
-  method: 'get',
-  path: '/mine-logs',
-  tags: ['dashboard'],
-  responses: {
-    '200': { description: '个人安全日志' },
-    '401': { description: '未授权', content: { 'application/json': { schema: ErrorResponseSchema } } },
-  },
-});

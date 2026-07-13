@@ -17,6 +17,7 @@ export function useMenu() {
 
   const formRef = ref();
   const dataList = ref([]);
+  const flatMenuList = ref([]);
   const loading = ref(true);
   const switchLoadMap = ref<Record<number, { loading: boolean }>>({});
   const { switchStyle } = usePublicHooks();
@@ -92,14 +93,16 @@ export function useMenu() {
       cellRenderer: (scope) => (
         <el-switch
           size={scope.props.size === "small" ? "small" : "default"}
-          loading={switchLoadMap.value[scope.index]?.loading}
+          loading={switchLoadMap.value[scope.row.id]?.loading}
           modelValue={scope.row.status}
           activeValue={1}
           inactiveValue={0}
           active-text="启用"
           inactive-text="停用"
           style={switchStyle}
-          onClick={() => handleStatusClick(scope.row, scope.index)}
+          onChange={(value: number) =>
+            handleStatusChange(scope.row, scope.index, value)
+          }
         />
       ),
     },
@@ -111,10 +114,6 @@ export function useMenu() {
     },
   ];
 
-  function handleSelectionChange(val) {
-    console.log("handleSelectionChange", val);
-  }
-
   function resetForm(formEl) {
     if (!formEl) return;
     formEl.resetFields();
@@ -125,12 +124,10 @@ export function useMenu() {
     loading.value = true;
     const { code, data } = await getMenuList(); // 这里是返回一维数组结构，前端自行处理成树结构，返回格式要求：唯一id加父节点parentId，parentId取父节点id
     if (code === 0) {
+      flatMenuList.value = data;
       let newData = data;
       if (!isAllEmpty(form.title)) {
-        // 前端搜索菜单名称
-        newData = newData.filter((item) =>
-          transformI18n(item.title).includes(form.title),
-        );
+        newData = filterMenusWithAncestors(newData, form.title);
       }
       dataList.value = handleTree(newData); // 处理成树结构
     }
@@ -140,12 +137,27 @@ export function useMenu() {
     }, 500);
   }
 
-  function formatHigherMenuOptions(treeList) {
+  function filterMenusWithAncestors(list, keyword: string) {
+    const menuMap = new Map(list.map(item => [item.id, item]));
+    const includeIds = new Set<number>();
+    for (const item of list) {
+      if (!transformI18n(item.title).includes(keyword)) continue;
+      let current = item;
+      while (current) {
+        includeIds.add(current.id);
+        current = menuMap.get(current.parentId);
+      }
+    }
+    return list.filter(item => includeIds.has(item.id));
+  }
+
+  function formatHigherMenuOptions(treeList, currentId?: number) {
     if (!treeList || !treeList.length) return;
     const newTreeList = [];
     for (let i = 0; i < treeList.length; i++) {
+      if (treeList[i].menuType === 1 || treeList[i].id === currentId) continue;
       treeList[i].title = transformI18n(treeList[i].title);
-      formatHigherMenuOptions(treeList[i].children);
+      treeList[i].children = formatHigherMenuOptions(treeList[i].children, currentId);
       newTreeList.push(treeList[i]);
     }
     return newTreeList;
@@ -158,7 +170,7 @@ export function useMenu() {
         formInline: {
           id: row?.id ?? null,
           menuType: row?.menuType ?? 0,
-          higherMenuOptions: formatHigherMenuOptions(cloneDeep(dataList.value)),
+          higherMenuOptions: formatHigherMenuOptions(handleTree(cloneDeep(flatMenuList.value)), row?.id),
           parentId: row?.parentId ?? 0,
           title: row?.title ?? "",
           name: row?.name ?? "",
@@ -218,17 +230,19 @@ export function useMenu() {
     }
   }
 
-  async function handleStatusClick(row, index) {
-    const newStatus = row.status === 1 ? 0 : 1;
-    switchLoadMap.value[index] = { loading: true };
+  async function handleStatusChange(row, index, value: number) {
+    const oldStatus = row.status;
+    const newStatus = Number(value);
+    switchLoadMap.value[row.id] = { loading: true };
     const { code, message: msg } = await updateMenu({ id: row.id, status: newStatus });
     if (code === 0) {
       row.status = newStatus;
       message(newStatus === 1 ? '已启用' : '已停用', { type: "success" });
     } else {
+      row.status = oldStatus;
       message(msg || '操作失败', { type: "error" });
     }
-    switchLoadMap.value[index] = { loading: false };
+    switchLoadMap.value[row.id] = { loading: false };
   }
 
   onMounted(() => {
@@ -248,7 +262,5 @@ export function useMenu() {
     openDialog,
     /** 删除菜单 */
     handleDelete,
-    handleSelectionChange,
-    handleStatusClick,
   };
 }

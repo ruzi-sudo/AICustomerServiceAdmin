@@ -22,7 +22,6 @@ A professional customer service administration system featuring AI-powered chat 
 
 ## Key Features
 
-- **AI Chat**: Integrated AI chat interface for customer service.
 - **RBAC System**: Robust Role-Based Access Control managing users, roles, and page permissions.
 - **Dynamic Routing**: Menus and routes are dynamically loaded based on user permissions.
 - **System Monitoring**: Comprehensive logging for logins, operations, and system events.

@@ -144,10 +144,6 @@ export function useRole(treeRef: Ref) {
     onSearch();
   }
 
-  function handleSelectionChange(val) {
-    console.log("handleSelectionChange", val);
-  }
-
   async function onSearch() {
     loading.value = true;
     const { code, data } = await getRoleList({ ...toRaw(form), pageNum: pagination.currentPage, pageSize: pagination.pageSize });
@@ -305,6 +301,5 @@ export function useRole(treeRef: Ref) {
     // handleDatabase,
     handleSizeChange,
     handleCurrentChange,
-    handleSelectionChange,
   };
 }

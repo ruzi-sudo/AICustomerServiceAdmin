@@ -1,5 +1,6 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { cors } from 'hono/cors';
+import { serveStatic } from '@hono/node-server/serve-static';
 import { route as authRoute } from './auth/auth.handlers';
 import { route as userRoute } from './user/user.handlers';
 import { route as roleRoute } from './role/role.handlers';
@@ -29,7 +30,10 @@ app.use('/user/*', authMiddleware);
 app.use('/user/*', systemLogMiddleware);
 app.use('/list-all-role', authMiddleware);
 app.use('/list-role-ids', authMiddleware);
+app.use('/upload/*', authMiddleware);
 app.route('/', userRoute);
+
+app.get('/uploads/*', serveStatic({ root: './public' }));
 
 // Protected routes - role
 app.use('/role/*', authMiddleware);

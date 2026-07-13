@@ -78,10 +78,6 @@ export function useRole() {
     onSearch();
   }
 
-  function handleSelectionChange(val) {
-    console.log("handleSelectionChange", val);
-  }
-
   async function handleOffline(row) {
     const { code } = await forceOffline({ id: row.id });
     if (code === 0) {
@@ -126,6 +122,5 @@ export function useRole() {
     handleOffline,
     handleSizeChange,
     handleCurrentChange,
-    handleSelectionChange,
   };
 }

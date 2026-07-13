@@ -5,7 +5,6 @@ import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 
 import Upload from "~icons/ri/upload-line";
-import Role from "~icons/ri/admin-line";
 import Password from "~icons/ri/lock-password-line";
 import More from "~icons/ep/more-filled";
 import Delete from "~icons/ep/delete";
@@ -34,11 +33,9 @@ const {
   resetForm,
   onbatchDel,
   openDialog,
-  handleUpdate,
   handleDelete,
   handleUpload,
   handleReset,
-  handleRole,
   handleSizeChange,
   onSelectionCancel,
   handleCurrentChange,
@@ -186,7 +183,6 @@ const {
                   type="primary"
                   :size="size"
                   :icon="useRenderIcon(More)"
-                  @click="handleUpdate(row)"
                 />
                 <template #dropdown>
                   <el-dropdown-menu>

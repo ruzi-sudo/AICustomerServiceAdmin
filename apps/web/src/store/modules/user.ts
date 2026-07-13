@@ -96,13 +96,19 @@ export const useUserStore = defineStore("pure-user", {
     /** 前端登出（调用后端接口清除在线用户记录） */
     async logOut() {
       try { await logoutApi(); } catch { /* ignore */ }
+      this.clearLoginState();
+    },
+    /** 清理本地登录状态并回到登录页 */
+    clearLoginState() {
       this.username = "";
       this.roles = [];
       this.permissions = [];
       removeToken();
       useMultiTagsStoreHook().handleTags("equal", [...routerArrays]);
       resetRouter();
-      router.push("/login");
+      if (router.currentRoute.value.path !== "/login") {
+        router.push("/login");
+      }
     },
     /** 刷新`token` */
     async handRefreshToken(data) {

@@ -1,6 +1,5 @@
 import "./reset.css";
 import dayjs from "dayjs";
-import roleForm from "../form/role.vue";
 import editForm from "../form/index.vue";
 import { zxcvbn } from "@zxcvbn-ts/core";
 import { message } from "@/utils/message";
@@ -9,14 +8,14 @@ import { usePublicHooks } from "../../hooks";
 import { addDialog } from "@/components/ReDialog";
 import type { PaginationProps } from "@pureadmin/table";
 import ReCropperPreview from "@/components/ReCropperPreview";
-import type { FormItemProps, RoleFormItemProps } from "../utils/types";
+import type { FormItemProps } from "../utils/types";
 import {
   getKeyList,
   isAllEmpty,
   hideTextAtIndex,
   deviceDetection,
 } from "@pureadmin/utils";
-import { getRoleIds, getUserList, getAllRoleList, createUser, updateUser, deleteUser, batchDeleteUser, resetPassword } from "@/api/system";
+import { getUserList, createUser, updateUser, deleteUser, batchDeleteUser, resetPassword } from "@/api/system";
 import {
   ElForm,
   ElInput,
@@ -45,8 +44,6 @@ export function useUser(tableRef: Ref) {
   const ruleFormRef = ref();
   const dataList = ref([]);
   const loading = ref(true);
-  // 上传头像信息
-  const avatarInfo = ref();
   const switchLoadMap = ref({});
   const { switchStyle } = usePublicHooks();
   const selectedNum = ref(0);
@@ -69,37 +66,9 @@ export function useUser(tableRef: Ref) {
       width: 90,
     },
     {
-      label: "用户头像",
-      prop: "avatar",
-      cellRenderer: ({ row }) => (
-        <el-image
-          fit="cover"
-          preview-teleported={true}
-          src={row.avatar || userAvatar}
-          preview-src-list={Array.of(row.avatar || userAvatar)}
-          class="size-6 rounded-full align-middle"
-        />
-      ),
-      width: 90,
-    },
-    {
       label: "用户名称",
       prop: "username",
       minWidth: 130,
-    },
-    {
-      label: "性别",
-      prop: "sex",
-      minWidth: 90,
-      cellRenderer: ({ row, props }) => (
-        <el-tag
-          size={props.size}
-          type={row.sex === 1 ? "danger" : null}
-          effect="plain"
-        >
-          {row.sex === 1 ? "女" : "男"}
-        </el-tag>
-      ),
     },
     {},
     {
@@ -183,8 +152,6 @@ export function useUser(tableRef: Ref) {
   ];
   // 当前密码强度（0-4）
   const curScore = ref();
-  const roleOptions = ref([]);
-
   async function onChange({ row, index }) {
     try {
       await ElMessageBox.confirm(
@@ -215,10 +182,6 @@ export function useUser(tableRef: Ref) {
     } else {
       row.status === 0 ? (row.status = 1) : (row.status = 0);
     }
-  }
-
-  function handleUpdate(row) {
-    console.log(row);
   }
 
   async function handleDelete(row) {
@@ -298,7 +261,6 @@ export function useUser(tableRef: Ref) {
           username: row?.username ?? "",
           password: row?.password ?? "",
           email: row?.email ?? "",
-          sex: row?.sex ?? "",
           roleIds: row?.roleIds ?? (title === '新增' ? [2] : undefined),
           status: row?.status ?? 1,
           remark: row?.remark ?? "",
@@ -350,11 +312,8 @@ export function useUser(tableRef: Ref) {
         h(ReCropperPreview, {
           ref: cropRef,
           imgSrc: row.avatar || userAvatar,
-          onCropper: (info) => (avatarInfo.value = info),
         }),
       beforeSure: (done) => {
-        console.log("裁剪后的图片信息：", avatarInfo.value);
-        // 根据实际业务使用avatarInfo.value和row里的某些字段去调用上传头像接口即可
         done(); // 关闭弹框
         onSearch(); // 刷新表格数据
       },
@@ -442,40 +401,8 @@ export function useUser(tableRef: Ref) {
     });
   }
 
-  /** 分配角色 */
-  async function handleRole(row) {
-    // 选中的角色列表
-    const ids = (await getRoleIds({ userId: row.id })).data ?? [];
-    addDialog({
-      title: `分配 ${row.username} 用户的角色`,
-      props: {
-        formInline: {
-          username: row?.username ?? "",
-          nickname: row?.nickname ?? "",
-          roleOptions: roleOptions.value ?? [],
-          ids,
-        },
-      },
-      width: "400px",
-      draggable: true,
-      fullscreen: deviceDetection(),
-      fullscreenIcon: true,
-      closeOnClickModal: false,
-      contentRenderer: () => h(roleForm),
-      beforeSure: (done, { options }) => {
-        const curData = options.props.formInline as RoleFormItemProps;
-        console.log("curIds", curData.ids);
-        // 根据实际业务使用curData.ids和row里的某些字段去调用修改角色接口即可
-        done(); // 关闭弹框
-      },
-    });
-  }
-
   onMounted(async () => {
     onSearch();
-
-    // 角色列表
-    roleOptions.value = (await getAllRoleList()).data ?? [];
   });
 
   return {
@@ -491,11 +418,9 @@ export function useUser(tableRef: Ref) {
     resetForm,
     onbatchDel,
     openDialog,
-    handleUpdate,
     handleDelete,
     handleUpload,
     handleReset,
-    handleRole,
     handleSizeChange,
     onSelectionCancel,
     handleCurrentChange,

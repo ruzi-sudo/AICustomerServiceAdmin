@@ -48,6 +48,22 @@ class PureHttp {
   /** 保存当前`Axios`实例对象 */
   private static axiosInstance: AxiosInstance = Axios.create(defaultConfig);
 
+  private static redirectingToLogin = false;
+
+  private static redirectToLogin(messageText?: string) {
+    if (PureHttp.redirectingToLogin) return;
+    PureHttp.redirectingToLogin = true;
+    PureHttp.requests = [];
+    PureHttp.isRefreshing = false;
+    useUserStoreHook().clearLoginState();
+    message(messageText || transformI18n($t("login.pureLoginExpired")), {
+      type: "warning",
+    });
+    window.setTimeout(() => {
+      PureHttp.redirectingToLogin = false;
+    }, 1000);
+  }
+
   /** 重连原始请求 */
   private static retryOriginalRequest(config: PureHttpRequestConfig) {
     return new Promise((resolve) => {
@@ -93,11 +109,7 @@ class PureHttp {
                         PureHttp.requests = [];
                       })
                       .catch((_err) => {
-                        PureHttp.requests = [];
-                        useUserStoreHook().logOut();
-                        message(transformI18n($t("login.pureLoginExpired")), {
-                          type: "warning",
-                        });
+                        PureHttp.redirectToLogin();
                       })
                       .finally(() => {
                         PureHttp.isRefreshing = false;
@@ -136,6 +148,10 @@ class PureHttp {
           PureHttp.initConfig.beforeResponseCallback(response);
           return response.data;
         }
+        if (response.data?.code === 10002) {
+          PureHttp.redirectToLogin(response.data?.message);
+          return Promise.reject(response.data);
+        }
         return response.data;
       },
       (error: PureHttpError) => {
@@ -143,6 +159,10 @@ class PureHttp {
         $error.isCancelRequest = Axios.isCancel($error);
         // 对于有响应体的错误（如 400/401），透传 response.data 方便上层使用 message
         if ($error.response?.data) {
+          const data = $error.response.data as any;
+          if ($error.response.status === 401 || data?.code === 10002) {
+            PureHttp.redirectToLogin(data?.message);
+          }
           return Promise.reject($error.response.data);
         }
         // 所有的响应异常 区分来源为取消请求/非取消请求

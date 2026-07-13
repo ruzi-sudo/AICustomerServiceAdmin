@@ -6,6 +6,7 @@ import {
   sysSystemLogDetails,
   sysOnlineUsers,
 } from '../db/schema';
+import { removeUserCredentialByOnlineUserId } from './redis.service';
 
 export async function listOnlineUsers(params: { username?: string; pageNum: number; pageSize: number }) {
   const db = await getDb();
@@ -122,11 +123,21 @@ export async function listSystemLogs(params: { module?: string; pageNum: number;
 
 export async function forceOffline(id: number) {
   const db = await getDb();
+  await removeUserCredentialByOnlineUserId(id);
   await db.delete(sysOnlineUsers).where(eq(sysOnlineUsers.id, id));
 }
 
 export async function forceOfflineByUsername(username: string) {
   const db = await getDb();
+  const onlineUsers = await db
+    .select({ id: sysOnlineUsers.id })
+    .from(sysOnlineUsers)
+    .where(eq(sysOnlineUsers.username, username));
+
+  for (const user of onlineUsers) {
+    await removeUserCredentialByOnlineUserId(user.id);
+  }
+
   await db.delete(sysOnlineUsers).where(eq(sysOnlineUsers.username, username));
 }
 

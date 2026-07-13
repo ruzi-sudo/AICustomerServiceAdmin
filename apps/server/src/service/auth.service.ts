@@ -90,7 +90,7 @@ export async function login(username: string, password: string, clientInfo?: { i
         if (addr) {
           getDb().then(db =>
             db.update(sysOnlineUsers)
-              .set({ address: addr })
+              .set({ address: addr } as Partial<typeof sysOnlineUsers.$inferInsert>)
               .where(and(eq(sysOnlineUsers.username, user.username), eq(sysOnlineUsers.ip, ip)))
           ).catch(() => {});
         }
@@ -105,7 +105,7 @@ export async function login(username: string, password: string, clientInfo?: { i
       system,
       browser,
       loginTime: new Date(),
-    }).$returningId();
+    } as typeof sysOnlineUsers.$inferInsert).$returningId();
 
     if (onlineUser?.id) {
       onlineUserId = onlineUser.id;
@@ -128,7 +128,7 @@ export async function login(username: string, password: string, clientInfo?: { i
       browser,
       status: 1,
       loginTime: new Date(),
-    });
+    } as typeof sysLoginLogs.$inferInsert);
   } catch { /* 非关键 */ }
 
   if (!credentialStored) {
@@ -147,6 +147,43 @@ export async function login(username: string, password: string, clientInfo?: { i
     refreshToken,
     expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().replace('T', ' ').slice(0, 19),
   };
+}
+
+export async function register(username: string, email: string, password: string, confirmPassword: string) {
+  if (password !== confirmPassword) {
+    throw { code: 10001, message: '两次输入的密码不一致', status: 400 };
+  }
+
+  const db = await getDb();
+  const [existingUser] = await db
+    .select({ id: sysUsers.id })
+    .from(sysUsers)
+    .where(eq(sysUsers.username, username))
+    .limit(1);
+  if (existingUser) {
+    throw { code: 10001, message: '用户名已存在', status: 400 };
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const [result] = await db.insert(sysUsers).values({
+    username,
+    email,
+    password: hashedPassword,
+    status: 1,
+  } as typeof sysUsers.$inferInsert);
+
+  const userId = Number(result.insertId);
+  const [commonRole] = await db
+    .select({ id: sysRoles.id })
+    .from(sysRoles)
+    .where(eq(sysRoles.code, 'common'))
+    .limit(1);
+
+  if (commonRole) {
+    await db.insert(sysUserRoles).values({ userId, roleId: commonRole.id });
+  }
+
+  return { id: userId };
 }
 
 export async function refreshToken(token: string) {

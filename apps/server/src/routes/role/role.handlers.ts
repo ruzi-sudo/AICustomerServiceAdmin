@@ -21,7 +21,12 @@ route.openapi(routes.listRoles, async (c) => {
 });
 
 route.openapi(routes.createRole, async (c) => {
-  const body = c.req.valid('json');
+  const body = c.req.valid('json') as {
+    name: string;
+    code: string;
+    status?: number;
+    remark?: string;
+  };
   try {
     const data = await roleService.createRole(body);
     return c.json({ code: 0, message: '操作成功', data });
@@ -31,7 +36,13 @@ route.openapi(routes.createRole, async (c) => {
 });
 
 route.openapi(routes.updateRole, async (c) => {
-  const body = c.req.valid('json');
+  const body = c.req.valid('json') as {
+    id: number;
+    name?: string;
+    code?: string;
+    status?: number;
+    remark?: string;
+  };
   try {
     await roleService.updateRole(body);
     return c.json({ code: 0, message: '操作成功', data: {} });

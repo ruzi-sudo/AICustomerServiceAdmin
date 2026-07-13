@@ -20,6 +20,16 @@ route.openapi(routes.login, async (c) => {
   }
 });
 
+route.openapi(routes.register, async (c) => {
+  const body = c.req.valid('json');
+  try {
+    const data = await authService.register(body.username, body.email, body.password, body.confirmPassword);
+    return c.json({ code: 0, message: '注册成功', data });
+  } catch (err: any) {
+    return c.json({ code: err.code || 10001, message: err.message || '注册失败', data: {} }, err.status || 400);
+  }
+});
+
 route.openapi(routes.refreshToken, async (c) => {
   const body = c.req.valid('json');
   try {

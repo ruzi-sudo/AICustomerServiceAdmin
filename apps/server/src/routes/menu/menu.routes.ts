@@ -20,7 +20,7 @@ export const createMenu = createRoute({
       content: {
         'application/json': {
           schema: z.object({
-            parentId: z.number().optional(),
+            parentId: z.coerce.number().optional(),
             menuType: z.coerce.number().default(0),
             title: z.string().min(1),
             name: z.string().optional(),
@@ -60,8 +60,8 @@ export const updateMenu = createRoute({
       content: {
         'application/json': {
           schema: z.object({
-            id: z.number(),
-            parentId: z.number().optional(),
+            id: z.coerce.number(),
+            parentId: z.coerce.number().optional(),
             menuType: z.coerce.number().optional(),
             title: z.string().min(1).optional(),
             name: z.string().optional(),
@@ -98,7 +98,7 @@ export const deleteMenu = createRoute({
   tags: ['menu'],
   request: {
     body: {
-      content: { 'application/json': { schema: z.object({ id: z.number() }) } },
+      content: { 'application/json': { schema: z.object({ id: z.coerce.number() }) } },
     },
   },
   responses: {

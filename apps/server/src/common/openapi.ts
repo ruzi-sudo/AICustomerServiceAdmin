@@ -14,7 +14,12 @@ export function setupOpenapi(app: OpenAPIHono, title: string, version: string) {
 
   app.get('/docs', apiReference({
     theme: 'solarized',
-    url: '/docs/openapi.json',
-    defaultHttpClient: 'fetch',
+    spec: {
+      url: '/docs/openapi.json',
+    },
+    defaultHttpClient: {
+      targetKey: 'js',
+      clientKey: 'fetch',
+    },
   }));
 }

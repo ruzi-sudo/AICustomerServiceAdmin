@@ -58,15 +58,6 @@ route.openapi(routes.getMine, async (c) => {
   if (!user) {
     return c.json({ code: 10002, message: '未登录', data: {} }, 401);
   }
-  const data = await dashboardService.getMineInfo(user.username);
+  const data = await dashboardService.getMineInfo(user.userId);
   return c.json({ code: 0, message: '操作成功', data: data || {} });
-});
-
-route.openapi(routes.getMineLogs, async (c) => {
-  const user = getUser(c);
-  if (!user) {
-    return c.json({ code: 10002, message: '未登录', data: {} }, 401);
-  }
-  const data = await dashboardService.getMineLogs(user.userId);
-  return c.json({ code: 0, message: '操作成功', data });
 });

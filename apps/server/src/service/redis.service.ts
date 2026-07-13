@@ -34,6 +34,22 @@ function credentialKey(onlineUserId: number, token: string): string {
   return `auth:credential:${onlineUserId}:${tokenHash(token)}`;
 }
 
+function refreshTokenKey(token: string): string {
+  return `auth:refresh:${tokenHash(token)}`;
+}
+
+function onlineUserKey(onlineUserId: number): string {
+  return `auth:online:${onlineUserId}`;
+}
+
+function onlineUserPayload(data: UserCredential): string {
+  return JSON.stringify({
+    accessTokenKey: accessTokenKey(data.accessToken),
+    credentialKey: credentialKey(data.onlineUserId, data.accessToken),
+    refreshTokenKey: refreshTokenKey(data.refreshToken),
+  });
+}
+
 function parseOnlineUserIdFromCredentialKey(key: string): number | null {
   const match = /^auth:credential:(\d+):/.exec(key);
   if (!match) return null;
@@ -89,7 +105,8 @@ export async function storeUserCredential(data: UserCredential): Promise<boolean
       .multi()
       .set(accessTokenKey(data.accessToken), String(data.onlineUserId), { EX: ACCESS_TOKEN_TTL_SECONDS })
       .set(credentialKey(data.onlineUserId, data.accessToken), payload, { EX: ACCESS_TOKEN_TTL_SECONDS })
-      .set(`auth:refresh:${tokenHash(data.refreshToken)}`, payload, { EX: REFRESH_TOKEN_TTL_SECONDS })
+      .set(refreshTokenKey(data.refreshToken), payload, { EX: REFRESH_TOKEN_TTL_SECONDS })
+      .set(onlineUserKey(data.onlineUserId), onlineUserPayload(data), { EX: REFRESH_TOKEN_TTL_SECONDS })
       .exec();
     return true;
   } catch (err) {
@@ -106,10 +123,11 @@ export async function replaceUserCredential(oldData: UserCredential, newData: Us
       .multi()
       .del(accessTokenKey(oldData.accessToken))
       .del(credentialKey(oldData.onlineUserId, oldData.accessToken))
-      .del(`auth:refresh:${tokenHash(oldData.refreshToken)}`)
+      .del(refreshTokenKey(oldData.refreshToken))
       .set(accessTokenKey(newData.accessToken), String(newData.onlineUserId), { EX: ACCESS_TOKEN_TTL_SECONDS })
       .set(credentialKey(newData.onlineUserId, newData.accessToken), payload, { EX: ACCESS_TOKEN_TTL_SECONDS })
-      .set(`auth:refresh:${tokenHash(newData.refreshToken)}`, payload, { EX: REFRESH_TOKEN_TTL_SECONDS })
+      .set(refreshTokenKey(newData.refreshToken), payload, { EX: REFRESH_TOKEN_TTL_SECONDS })
+      .set(onlineUserKey(newData.onlineUserId), onlineUserPayload(newData), { EX: REFRESH_TOKEN_TTL_SECONDS })
       .exec();
     return true;
   } catch (err) {
@@ -121,12 +139,44 @@ export async function replaceUserCredential(oldData: UserCredential, newData: Us
 export async function getUserCredentialByRefreshToken(refreshToken: string): Promise<UserCredential | null> {
   try {
     const redis = await getRedisClient();
-    const payload = await redis.get(`auth:refresh:${tokenHash(refreshToken)}`);
+    const payload = await redis.get(refreshTokenKey(refreshToken));
     if (!payload) return null;
     return JSON.parse(String(payload)) as UserCredential;
   } catch (err) {
     console.error('[Redis] Failed to read refresh credential:', err);
     return null;
+  }
+}
+
+export async function removeUserCredentialByOnlineUserId(onlineUserId: number): Promise<boolean> {
+  try {
+    const redis = await getRedisClient();
+    const payload = await redis.get(onlineUserKey(onlineUserId));
+    if (!payload) {
+      await redis.del(onlineUserKey(onlineUserId));
+      return true;
+    }
+
+    const keys = JSON.parse(String(payload)) as {
+      accessTokenKey?: string;
+      credentialKey?: string;
+      refreshTokenKey?: string;
+    };
+
+    const keysToDelete = [
+      keys.accessTokenKey,
+      keys.credentialKey,
+      keys.refreshTokenKey,
+      onlineUserKey(onlineUserId),
+    ].filter((key): key is string => Boolean(key));
+
+    if (keysToDelete.length > 0) {
+      await redis.del(keysToDelete);
+    }
+    return true;
+  } catch (err) {
+    console.error(`[Redis] Failed to remove credential for online user ${onlineUserId}:`, err);
+    return false;
   }
 }
 

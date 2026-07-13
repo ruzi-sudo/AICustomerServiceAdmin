@@ -332,12 +332,7 @@ defineExpose({ getRef });
           />
         </el-form-item>
       </re-col>
-      <re-col
-        v-if="newFormInline.menuType == 0"
-        :value="12"
-        :xs="24"
-        :sm="24"
-      >
+      <re-col :value="12" :xs="24" :sm="24">
         <el-form-item label="菜单状态">
           <el-switch
             v-model="newFormInline.status"

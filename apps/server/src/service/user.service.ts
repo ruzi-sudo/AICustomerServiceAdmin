@@ -7,7 +7,6 @@ import { sysRoles } from '../db/schema';
 export async function listUsers(params: {
   username?: string;
   status?: number;
-  phone?: string;
   email?: string;
   pageNum: number;
   pageSize: number;
@@ -34,7 +33,6 @@ export async function listUsers(params: {
       username: sysUsers.username,
       avatar: sysUsers.avatar,
       email: sysUsers.email,
-      sex: sysUsers.sex,
       status: sysUsers.status,
       remark: sysUsers.remark,
       createTime: sysUsers.createdAt,
@@ -67,7 +65,6 @@ export async function listUsers(params: {
     username: u.username,
     avatar: u.avatar || '',
     email: u.email || '',
-    sex: u.sex ?? 0,
     status: u.status ?? 1,
     roleIds: rolesByUser[u.id]?.ids || [],
     roles: rolesByUser[u.id]?.codes || [],
@@ -81,10 +78,8 @@ export async function listUsers(params: {
 export async function createUser(params: {
   username: string;
   password: string;
-  nickname?: string;
-  phone?: string;
+  avatar?: string;
   email?: string;
-  sex?: number;
   status?: number;
   roleIds?: number[];
   remark?: string;
@@ -107,11 +102,10 @@ export async function createUser(params: {
     username: params.username,
     password: hashedPassword,
     email: params.email || null,
-    phone: params.phone || null,
-    sex: params.sex ?? 0,
+    avatar: params.avatar || null,
     status: params.status ?? 1,
     remark: params.remark || null,
-  });
+  } as typeof sysUsers.$inferInsert);
 
   const userId = Number(result.insertId);
 
@@ -127,10 +121,9 @@ export async function createUser(params: {
 
 export async function updateUser(params: {
   id: number;
-  nickname?: string;
-  phone?: string;
+  username?: string;
+  avatar?: string;
   email?: string;
-  sex?: number;
   status?: number;
   roleIds?: number[];
   remark?: string;
@@ -146,19 +139,28 @@ export async function updateUser(params: {
     throw { code: 10003, message: '用户不存在', status: 404 };
   }
 
+  if (params.username !== undefined) {
+    const [sameUsername] = await db
+      .select({ id: sysUsers.id })
+      .from(sysUsers)
+      .where(eq(sysUsers.username, params.username))
+      .limit(1);
+    if (sameUsername && sameUsername.id !== params.id) {
+      throw { code: 10001, message: '用户名已存在', status: 400 };
+    }
+  }
+
   const updateData: Record<string, any> = {};
   if (params.username !== undefined) updateData.username = params.username;
-  if (params.nickname !== undefined) updateData.nickname = params.nickname;
-  if (params.phone !== undefined) updateData.phone = params.phone;
+  if (params.avatar !== undefined) updateData.avatar = params.avatar;
   if (params.email !== undefined) updateData.email = params.email;
-  if (params.sex !== undefined) updateData.sex = params.sex;
   if (params.status !== undefined) updateData.status = params.status;
   if (params.remark !== undefined) updateData.remark = params.remark;
 
   if (Object.keys(updateData).length > 0) {
     updateData.updatedAt = new Date();
     await db.update(sysUsers)
-      .set(updateData)
+      .set(updateData as Partial<typeof sysUsers.$inferInsert>)
       .where(eq(sysUsers.id, params.id));
   }
 
@@ -210,6 +212,6 @@ export async function resetPassword(id: number, password: string) {
 
   const hashedPassword = await bcrypt.hash(password, 10);
   await db.update(sysUsers)
-    .set({ password: hashedPassword, updatedAt: new Date() })
+    .set({ password: hashedPassword, updatedAt: new Date() } as Partial<typeof sysUsers.$inferInsert>)
     .where(eq(sysUsers.id, id));
 }

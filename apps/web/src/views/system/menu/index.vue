@@ -25,7 +25,6 @@ const {
   resetForm,
   openDialog,
   handleDelete,
-  handleSelectionChange,
 } = useMenu();
 
 function onFullscreen() {
@@ -99,7 +98,6 @@ function onFullscreen() {
             background: 'var(--el-fill-color-light)',
             color: 'var(--el-text-color-primary)',
           }"
-          @selection-change="handleSelectionChange"
         >
           <template #operation="{ row }">
             <el-button

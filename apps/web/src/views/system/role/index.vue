@@ -72,7 +72,6 @@ const {
   // handleDatabase,
   handleSizeChange,
   handleCurrentChange,
-  handleSelectionChange,
 } = useRole(treeRef);
 
 onMounted(() => {
@@ -183,7 +182,6 @@ onMounted(() => {
               background: 'var(--el-fill-color-light)',
               color: 'var(--el-text-color-primary)',
             }"
-            @selection-change="handleSelectionChange"
             @page-size-change="handleSizeChange"
             @page-current-change="handleCurrentChange"
           >

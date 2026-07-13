@@ -12,23 +12,12 @@ const props = withDefaults(defineProps<FormProps>(), {
     username: "",
     password: "",
     email: "",
-    sex: "",
     roleIds: [2],
     status: 1,
     remark: "",
   }),
 });
 
-const sexOptions = [
-  {
-    value: 0,
-    label: "男",
-  },
-  {
-    value: 1,
-    label: "女",
-  },
-];
 const ruleFormRef = ref();
 const { switchStyle } = usePublicHooks();
 const newFormInline = ref(props.formInline);
@@ -87,24 +76,6 @@ defineExpose({ getRef });
           />
         </el-form-item>
       </re-col>
-      <re-col :value="12" :xs="24" :sm="24">
-        <el-form-item label="用户性别">
-          <el-select
-            v-model="newFormInline.sex"
-            placeholder="请选择用户性别"
-            class="w-full"
-            clearable
-          >
-            <el-option
-              v-for="(item, index) in sexOptions"
-              :key="index"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
-        </el-form-item>
-      </re-col>
-
       <re-col :value="12" :xs="24" :sm="24">
         <el-form-item label="选择角色" prop="roleIds">
           <el-select

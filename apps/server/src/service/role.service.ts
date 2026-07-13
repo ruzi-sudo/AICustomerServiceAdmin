@@ -24,7 +24,7 @@ export async function getRoleIdsByUserId(userId: number) {
 export async function listRoles(params: {
   name?: string;
   status?: number;
-  code?: string;
+  code?: string | string[];
   pageNum: number;
   pageSize: number;
 }) {
@@ -98,7 +98,7 @@ export async function createRole(params: {
     code: params.code,
     status: params.status ?? 1,
     remark: params.remark || null,
-  });
+  } as typeof sysRoles.$inferInsert);
 
   return { id: Number(result.insertId) };
 }

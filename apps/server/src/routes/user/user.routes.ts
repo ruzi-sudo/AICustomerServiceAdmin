@@ -25,10 +25,8 @@ export const createUser = createRoute({
           schema: z.object({
             username: z.string().min(2).max(64),
             password: z.string().min(6).max(64),
-            nickname: z.string().min(1).max(64),
-            phone: z.string().optional(),
+            avatar: z.string().optional(),
             email: z.string(),
-            sex: z.coerce.number().optional(),
             status: z.coerce.number().optional(),
             roleIds: z.array(z.number()).optional(),
             remark: z.string().optional(),
@@ -75,10 +73,8 @@ export const updateUser = createRoute({
           schema: z.object({
             id: z.number(),
             username: z.string().min(2).max(64).optional(),
-            nickname: z.string().min(1).max(64).optional(),
-            phone: z.string().optional(),
+            avatar: z.string().optional(),
             email: z.string().optional(),
-            sex: z.coerce.number().optional(),
             status: z.coerce.number().optional(),
             roleIds: z.array(z.number()).optional(),
             remark: z.string().optional(),

@@ -3,29 +3,25 @@ import { useI18n } from "vue-i18n";
 import { ref, reactive } from "vue";
 import Motion from "../utils/motion";
 import { message } from "@/utils/message";
-import { updateRules } from "../utils/rule";
+import { registerRules } from "../utils/rule";
 import type { FormInstance } from "element-plus";
-import { useVerifyCode } from "../utils/verifyCode";
+import { registerApi } from "@/api/user";
 import { $t, transformI18n } from "@/plugins/i18n";
 import { useUserStoreHook } from "@/store/modules/user";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
 import Lock from "~icons/ri/lock-fill";
-import Iphone from "~icons/ep/iphone";
+import Message from "~icons/ri/mail-fill";
 import User from "~icons/ri/user-3-fill";
-import Keyhole from "~icons/ri/shield-keyhole-line";
 
 const { t } = useI18n();
-const checked = ref(false);
 const loading = ref(false);
 const ruleForm = reactive({
   username: "",
-  phone: "",
-  verifyCode: "",
+  email: "",
   password: "",
-  repeatPassword: "",
+  confirmPassword: "",
 });
 const ruleFormRef = ref<FormInstance>();
-const { isDisabled, text } = useVerifyCode();
 const repeatPasswordRule = [
   {
     validator: (rule, value, callback) => {
@@ -44,23 +40,25 @@ const repeatPasswordRule = [
 ];
 
 const onUpdate = async (formEl: FormInstance | undefined) => {
-  loading.value = true;
   if (!formEl) return;
-  await formEl.validate((valid) => {
+  await formEl.validate(async (valid) => {
     if (valid) {
-      if (checked.value) {
-        // 模拟请求，需根据实际开发进行修改
-        setTimeout(() => {
-          message(transformI18n($t("login.pureRegisterSuccess")), {
-            type: "success",
-          });
-          loading.value = false;
-        }, 2000);
-      } else {
-        loading.value = false;
-        message(transformI18n($t("login.pureTickPrivacy")), {
-          type: "warning",
+      loading.value = true;
+      try {
+        await registerApi({
+          username: ruleForm.username,
+          email: ruleForm.email,
+          password: ruleForm.password,
+          confirmPassword: ruleForm.confirmPassword,
         });
+        message(transformI18n($t("login.pureRegisterSuccess")), {
+          type: "success",
+        });
+        useUserStoreHook().SET_CURRENTPAGE(0);
+      } catch (err: any) {
+        message(err?.message || "注册失败", { type: "error" });
+      } finally {
+        loading.value = false;
       }
     } else {
       loading.value = false;
@@ -69,7 +67,6 @@ const onUpdate = async (formEl: FormInstance | undefined) => {
 };
 
 function onBack() {
-  useVerifyCode().end();
   useUserStoreHook().SET_CURRENTPAGE(0);
 }
 </script>
@@ -78,7 +75,7 @@ function onBack() {
   <el-form
     ref="ruleFormRef"
     :model="ruleForm"
-    :rules="updateRules"
+    :rules="registerRules"
     size="large"
   >
     <Motion>
@@ -102,41 +99,17 @@ function onBack() {
     </Motion>
 
     <Motion :delay="100">
-      <el-form-item prop="phone">
+      <el-form-item prop="email">
         <el-input
-          v-model="ruleForm.phone"
+          v-model="ruleForm.email"
           clearable
-          :placeholder="t('login.purePhone')"
-          :prefix-icon="useRenderIcon(Iphone)"
+          placeholder="邮箱"
+          :prefix-icon="useRenderIcon(Message)"
         />
       </el-form-item>
     </Motion>
 
     <Motion :delay="150">
-      <el-form-item prop="verifyCode">
-        <div class="w-full flex justify-between">
-          <el-input
-            v-model="ruleForm.verifyCode"
-            clearable
-            :placeholder="t('login.pureSmsVerifyCode')"
-            :prefix-icon="useRenderIcon(Keyhole)"
-          />
-          <el-button
-            :disabled="isDisabled"
-            class="ml-2!"
-            @click="useVerifyCode().start(ruleFormRef, 'phone')"
-          >
-            {{
-              text.length > 0
-                ? text + t("login.pureInfo")
-                : t("login.pureGetVerifyCode")
-            }}
-          </el-button>
-        </div>
-      </el-form-item>
-    </Motion>
-
-    <Motion :delay="200">
       <el-form-item prop="password">
         <el-input
           v-model="ruleForm.password"
@@ -148,10 +121,10 @@ function onBack() {
       </el-form-item>
     </Motion>
 
-    <Motion :delay="250">
-      <el-form-item :rules="repeatPasswordRule" prop="repeatPassword">
+    <Motion :delay="200">
+      <el-form-item :rules="repeatPasswordRule" prop="confirmPassword">
         <el-input
-          v-model="ruleForm.repeatPassword"
+          v-model="ruleForm.confirmPassword"
           clearable
           show-password
           :placeholder="t('login.pureSure')"
@@ -160,18 +133,7 @@ function onBack() {
       </el-form-item>
     </Motion>
 
-    <Motion :delay="300">
-      <el-form-item>
-        <el-checkbox v-model="checked">
-          {{ t("login.pureReadAccept") }}
-        </el-checkbox>
-        <el-button link type="primary">
-          {{ t("login.purePrivacyPolicy") }}
-        </el-button>
-      </el-form-item>
-    </Motion>
-
-    <Motion :delay="350">
+    <Motion :delay="250">
       <el-form-item>
         <el-button
           class="w-full"
@@ -185,7 +147,7 @@ function onBack() {
       </el-form-item>
     </Motion>
 
-    <Motion :delay="400">
+    <Motion :delay="300">
       <el-form-item>
         <el-button class="w-full" size="default" @click="onBack">
           {{ t("login.pureBack") }}

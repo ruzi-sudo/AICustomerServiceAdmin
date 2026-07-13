@@ -63,17 +63,3 @@ export const sysOnlineUsers = mysqlTable('sys_online_users', {
 }, (table) => ({
   usernameIdx: index('idx_online_users_username').on(table.username),
 }));
-
-export const sysMineLogs = mysqlTable('sys_mine_logs', {
-  id: int('id').primaryKey().autoincrement(),
-  userId: int('user_id').notNull(),
-  ip: varchar('ip', { length: 64 }),
-  address: varchar('address', { length: 128 }),
-  system: varchar('system', { length: 64 }),
-  browser: varchar('browser', { length: 64 }),
-  summary: varchar('summary', { length: 255 }),
-  operatingTime: datetime('operating_time', { mode: 'date' }).default(new Date()),
-}, (table) => ({
-  userIdIdx: index('idx_mine_logs_user_id').on(table.userId),
-  operatingTimeIdx: index('idx_mine_logs_operating_time').on(table.operatingTime),
-}));

@@ -54,7 +54,7 @@ route.openapi(routes.forceOffline, async (c) => {
 });
 
 route.openapi(routes.userLogout, async (c) => {
-  const user = c.get('user') as { username?: string } | undefined;
+  const user = (c as any).get('user') as { username?: string } | undefined;
   if (user?.username) {
     await monitorService.forceOfflineByUsername(user.username);
   }

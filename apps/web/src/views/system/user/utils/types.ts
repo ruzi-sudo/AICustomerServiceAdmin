@@ -5,7 +5,6 @@ interface FormItemProps {
   username: string;
   password: string;
   email: string;
-  sex: string | number;
   roleIds?: number[];
   status: number;
   remark: string;

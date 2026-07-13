@@ -24,11 +24,8 @@ CREATE TABLE IF NOT EXISTS sys_users (
     id          INT PRIMARY KEY AUTO_INCREMENT COMMENT '用户ID',
     username    VARCHAR(64) UNIQUE NOT NULL COMMENT '用户名',
     password    VARCHAR(255) NOT NULL COMMENT '密码',
-    nickname    VARCHAR(64) COMMENT '昵称',
-    phone       VARCHAR(32) COMMENT '手机号',
     avatar      VARCHAR(512) COMMENT '头像URL',
     email       VARCHAR(128) COMMENT '邮箱',
-    sex         TINYINT DEFAULT 0 COMMENT '性别(0男 1女)',
     status      TINYINT DEFAULT 1 COMMENT '状态(1启用 0停用)',
     remark      TEXT COMMENT '备注',
     created_at  DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -165,20 +162,6 @@ CREATE TABLE IF NOT EXISTS sys_online_users (
     login_time  DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '登录时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='在线用户表';
 
--- ----------------------------
--- 11. 个人安全日志表
--- ----------------------------
-CREATE TABLE IF NOT EXISTS sys_mine_logs (
-    id              INT PRIMARY KEY AUTO_INCREMENT COMMENT '日志ID',
-    user_id         INT NOT NULL COMMENT '用户ID',
-    ip              VARCHAR(64) COMMENT '来源IP',
-    address         VARCHAR(128) COMMENT '地点',
-    `system`        VARCHAR(64) COMMENT '操作系统',
-    browser         VARCHAR(64) COMMENT '浏览器',
-    summary         VARCHAR(255) COMMENT '操作摘要',
-    operating_time  DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '操作时间'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='个人安全日志表';
-
 -- ============================================================
 -- Seed Data
 -- ============================================================
@@ -211,9 +194,9 @@ INSERT IGNORE INTO sys_configs (config_key, config_value, description) VALUES
 ('CachingAsyncRoutes', 'false', '缓存动态路由');
 
 -- 密码: admin123
-INSERT IGNORE INTO sys_users (id, username, password, nickname, phone, avatar, email, sex, status, remark) VALUES
-(1, 'admin', '$2a$10$dvAenDGUE2prXBAKMuhpj.ALgUIIZP59GeeMp/QXqh5QonPgYsZMK', '管理员', '13800000000', 'https://avatars.githubusercontent.com/u/44761321', 'admin@pureadmin.cn', 0, 1, '管理员'),
-(2, 'common', '$2a$10$dvAenDGUE2prXBAKMuhpj.ALgUIIZP59GeeMp/QXqh5QonPgYsZMK', '普通用户', '13900000000', 'https://avatars.githubusercontent.com/u/52823142', 'common@pureadmin.cn', 1, 1, '普通用户');
+INSERT IGNORE INTO sys_users (id, username, password, avatar, email, status, remark) VALUES
+(1, 'admin', '$2a$10$dvAenDGUE2prXBAKMuhpj.ALgUIIZP59GeeMp/QXqh5QonPgYsZMK', 'https://avatars.githubusercontent.com/u/44761321', 'admin@pureadmin.cn', 1, '管理员'),
+(2, 'common', '$2a$10$dvAenDGUE2prXBAKMuhpj.ALgUIIZP59GeeMp/QXqh5QonPgYsZMK', 'https://avatars.githubusercontent.com/u/52823142', 'common@pureadmin.cn', 1, '普通用户');
 
 INSERT IGNORE INTO sys_roles (id, name, code, status, remark) VALUES
 (1, '超级管理员', 'admin', 1, '超级管理员，拥有全部权限'),
@@ -226,8 +209,6 @@ INSERT IGNORE INTO sys_user_roles (user_id, role_id) VALUES
 INSERT IGNORE INTO sys_pages (id, parent_id, menu_type, title, name, path, component, `rank`, icon, auths, status) VALUES
 (1, 0, 0, 'menus.pureHome', 'Home', '/', 'layout/index.vue', 0, 'ep/home-filled', NULL, 1),
 (2, 1, 0, 'menus.pureHome', 'Welcome', '/welcome', 'views/welcome/index.vue', 0, NULL, NULL, 1),
-(3, 0, 0, 'chat-ai', 'ChatAi', '/chatai', NULL, 1, 'ri/chat-search-line', NULL, 1),
-(4, 3, 0, 'chat-ai', 'ChatAi', '/chatai/index', 'views/chatai/index.vue', 1, NULL, NULL, 1),
 (5, 0, 0, 'menus.pureSysManagement', NULL, '/system', NULL, 2, 'ri/settings-3-line', NULL, 1),
 (6, 5, 0, 'menus.pureUser', 'SystemUser', '/system/user/index', 'views/system/user/index.vue', 1, 'ri/admin-line', NULL, 1),
 (7, 5, 0, 'menus.pureRole', 'SystemRole', '/system/role/index', 'views/system/role/index.vue', 2, 'ri/admin-fill', NULL, 1),
@@ -242,19 +223,11 @@ SELECT 1, id FROM sys_pages;
 
 INSERT IGNORE INTO sys_role_pages (role_id, page_id) VALUES
 (2, 1),
-(2, 2),
-(2, 3),
-(2, 4);
+(2, 2);
 
 INSERT IGNORE INTO sys_login_logs (id, user_id, username, ip, address, `system`, browser, status, login_time) VALUES
 (1, 1, 'admin', '192.168.1.100', '中国河南省信阳市', 'macOS', 'Chrome', 1, '2025-01-01 09:00:00'),
 (2, 2, 'common', '192.168.1.101', '中国广东省深圳市', 'Windows', 'Firefox', 1, '2025-01-01 09:30:00');
-
-INSERT IGNORE INTO sys_mine_logs (id, user_id, ip, address, `system`, browser, summary, operating_time) VALUES
-(1, 1, '192.168.1.100', '中国河南省信阳市', 'macOS', 'Chrome', '账户登录', NOW()),
-(2, 1, '192.168.1.100', '中国河南省信阳市', 'macOS', 'Chrome', '绑定了手机号码', DATE_SUB(NOW(), INTERVAL 1 DAY)),
-(3, 2, '192.168.1.101', '中国广东省深圳市', 'Windows', 'Firefox', '账户登录', NOW()),
-(4, 2, '192.168.1.101', '中国广东省深圳市', 'Windows', 'Firefox', '修改了个人资料', DATE_SUB(NOW(), INTERVAL 3 DAY));
 
 -- ============================================================
 -- Indexes
@@ -272,5 +245,3 @@ CREATE INDEX idx_system_logs_username ON sys_system_logs(username);
 CREATE INDEX idx_system_logs_module ON sys_system_logs(module);
 CREATE INDEX idx_system_log_details_log_id ON sys_system_log_details(log_id);
 CREATE INDEX idx_online_users_username ON sys_online_users(username);
-CREATE INDEX idx_mine_logs_user_id ON sys_mine_logs(user_id);
-CREATE INDEX idx_mine_logs_operating_time ON sys_mine_logs(operating_time);

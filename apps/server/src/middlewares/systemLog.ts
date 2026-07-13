@@ -147,7 +147,7 @@ async function writeLog(params: {
       takesTime: params.took,
       status: params.status,
       createdAt: new Date(),
-    });
+    } as typeof sysSystemLogs.$inferInsert);
 
     // 写入详情表
     const logId = Number(result.insertId);
@@ -160,7 +160,7 @@ async function writeLog(params: {
         responseBody: params.responseBody || null,
         traceId: `trace-${logId}-${Date.now()}`,
         requestTime: new Date(),
-      });
+      } as typeof sysSystemLogDetails.$inferInsert);
     }
   } catch { /* 非关键操作不抛异常 */ }
 }

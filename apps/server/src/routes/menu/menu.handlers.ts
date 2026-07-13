@@ -31,7 +31,7 @@ route.openapi(routes.deleteMenu, async (c) => {
 });
 
 route.openapi(routes.getAsyncRoutes, async (c) => {
-  const user = c.get('user') as { roles: string[] };
+  const user = (c as any).get('user') as { roles: string[] };
   const data = await menuService.getAsyncRoutes(user.roles);
   return c.json({ code: 0, message: '操作成功', data });
 });

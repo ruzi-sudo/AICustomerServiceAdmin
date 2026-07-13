@@ -5,6 +5,13 @@ export const LoginBodySchema = z.object({
   password: z.string().min(1).openapi({ example: 'admin123' }),
 });
 
+export const RegisterBodySchema = z.object({
+  username: z.string().min(1).openapi({ example: 'new_user' }),
+  email: z.string().email().openapi({ example: 'user@example.com' }),
+  password: z.string().min(1).openapi({ example: 'Admin123' }),
+  confirmPassword: z.string().min(1).openapi({ example: 'Admin123' }),
+});
+
 export const RefreshBodySchema = z.object({
   refreshToken: z.string().min(1).openapi({ example: 'eyJhbGciOiJIUzUxMiJ9.adminRefresh' }),
 });
@@ -15,7 +22,6 @@ export const LoginResponseSchema = z.object({
   data: z.object({
     avatar: z.string(),
     username: z.string(),
-    nickname: z.string(),
     roles: z.array(z.string()),
     permissions: z.array(z.string()),
     accessToken: z.string(),

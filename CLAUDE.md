@@ -170,7 +170,6 @@ src/
 │   ├── system.ts              # User/role/menu management APIs
 │   └── list.ts                # List/dashboard data APIs
 ├── views/                     # Page components by feature
-│   ├── chatai/                # AI chat feature
 │   ├── system/                # User/Role/Menu management pages
 │   ├── monitor/               # Online users, login/operation/system logs
 │   ├── login/                 # Login page
@@ -194,8 +193,8 @@ src/
 ```
 
 **Key frontend patterns**:
-- Router uses `import.meta.glob(["./modules/**/*.ts", "!./modules/**/remaining.ts", "!./modules/**/chatai.ts"], { eager: true })` to auto-import static routes. Adding a new `.ts` file in `router/modules/` auto-registers it; to exclude a module from auto-import, add it to the glob's negative patterns in `router/index.ts`
-- Dynamic routes (including chat-ai) fetched from `/api/get-async-routes` after login, merged with static routes in Pinia permission store. These are defined in `sys_pages` database table and assigned to roles via `sys_role_pages`
+- Router uses `import.meta.glob(["./modules/**/*.ts", "!./modules/**/remaining.ts"], { eager: true })` to auto-import static routes. Adding a new `.ts` file in `router/modules/` auto-registers it; to exclude a module from auto-import, add it to the glob's negative patterns in `router/index.ts`
+- Dynamic routes are fetched from `/api/get-async-routes` after login, merged with static routes in Pinia permission store. These are defined in `sys_pages` database table and assigned to roles via `sys_role_pages`
 - API calls use Axios wrapper at `src/utils/http/` with automatic token refresh interceptor
 - Store modules export both `useXxxStore` (inside Vue setup) and `useXxxStoreHook` (outside setup, for router/layout hooks)
 - `@pureadmin/utils` provides many utilities (`isUrl`, `cloneDeep`, `storageLocal`, etc.)
@@ -207,7 +206,7 @@ All tables use `sys_` prefix. Key tables:
 - `sys_users` — username, bcrypt password, nickname, avatar, phone, email, status
 - `sys_roles` — name, unique code, status
 - `sys_user_roles` — many-to-many join
-- `sys_pages` — hierarchical menus (4 types: 0=menu, 1=iframe, 2=external link, 3=button), tree via `parent_id`
+- `sys_pages` — hierarchical menus (0=menu, 1=button), tree via `parent_id`
 - `sys_role_pages` — role-page permissions many-to-many
 - `sys_configs` — key-value app settings (layout, theme, i18n, etc.)
 - Log tables: `sys_login_logs`, `sys_operation_logs`, `sys_system_logs`, `sys_system_log_details`, `sys_online_users`, `sys_mine_logs`
@@ -215,5 +214,5 @@ All tables use `sys_` prefix. Key tables:
 ### Seed data
 
 - **admin** (role: admin) and **common** (role: common) users — password `admin123`
-- admin has full menu access; common has only home + chat-ai
+- admin has full menu access; common has only home
 - Sample logs, configs, and menus pre-populated

@@ -8,8 +8,6 @@ export type UserResult = {
     avatar: string;
     /** 用户名 */
     username: string;
-    /** 昵称 */
-    nickname: string;
     /** 当前登录用户的角色 */
     roles: Array<string>;
     /** 按钮级别权限 */
@@ -37,16 +35,22 @@ export type RefreshTokenResult = {
 };
 
 export type UserInfo = {
+  /** 用户ID */
+  id: number;
   /** 头像 */
   avatar: string;
   /** 用户名 */
   username: string;
-  /** 昵称 */
-  nickname: string;
   /** 邮箱 */
   email: string;
-  /** 联系电话 */
-  phone: string;
+  /** 状态 */
+  status: number;
+  /** 角色ID */
+  roleIds: number[];
+  /** 当前登录用户的角色 */
+  roles: string[];
+  /** 备注 */
+  remark: string;
   /** 简介 */
   description: string;
 };
@@ -55,21 +59,6 @@ export type UserInfoResult = {
   code: number;
   message: string;
   data: UserInfo;
-};
-
-type ResultTable = {
-  code: number;
-  message: string;
-  data?: {
-    /** 列表数据 */
-    list: Array<any>;
-    /** 总条目数 */
-    total?: number;
-    /** 每页显示条目个数 */
-    pageSize?: number;
-    /** 当前页数 */
-    currentPage?: number;
-  };
 };
 
 type Result = {
@@ -81,6 +70,11 @@ type Result = {
 /** 登录 */
 export const getLogin = (data?: object) => {
   return http.request<UserResult>("post", "/api/login", { data });
+};
+
+/** 注册 */
+export const registerApi = (data?: object) => {
+  return http.request<Result>("post", "/api/register", { data });
 };
 
 /** 刷新`token` */
@@ -100,7 +94,10 @@ export const getMine = (data?: object) => {
   return http.request<UserInfoResult>("get", "/api/mine", { data });
 };
 
-/** 账户设置-个人安全日志 */
-export const getMineLogs = (data?: object) => {
-  return http.request<ResultTable>("get", "/api/mine-logs", { data });
+/** 上传头像 */
+export const uploadAvatar = (data: FormData) => {
+  return http.request<Result>("post", "/api/upload/avatar", {
+    data,
+    headers: { "Content-Type": "multipart/form-data" },
+  });
 };
