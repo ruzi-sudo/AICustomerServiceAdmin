@@ -1,5 +1,5 @@
 {
-  "name": "@aicustomer/admin-web",
+  "name": "@hono-elplus-admin/admin-web",
   "version": "7.0.0",
   "private": true,
   "type": "module",
